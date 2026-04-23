@@ -4,7 +4,7 @@ Machine language only.
 
 ## Motivation
 
-In early 2026, Elon Musk said that in future, developers would write code in natural language and AI would generate machine code directly, without the need for human-readable code.
+In early 2026, Elon Musk [said](https://www.youtube.com/watch?v=HD_SiJDWPcQ&t=683s) that in future, developers would write code in natural language and AI would generate machine code directly, without the need for human-readable code.
 
 I wanted to explore this idea and see how far I could get.
 
@@ -58,11 +58,13 @@ to check for:
 - `xxd` - converts literal hex bytes to binaries and helps inspect raw output;
   on some distros this is packaged as `xxd`, on others it comes from
   `vim-common`
-- `qemu-user-static` - required to run the committed non-x86 Linux ELF targets
-  in `poc-06/` and `poc-07/`
+- `qemu-user-static` - required to run the committed non-x86 native targets in
+  `poc-06/`, `poc-07/`, and `poc-09/`
 - `wasmtime` - required to run the WebAssembly/WASI targets in `poc-05/`
 - `wine64` - not yet required for the repo's current automated Windows test,
   but needed if you want to directly execute `poc-08/hello.exe` on Linux
+- official Android SDK / NDK binaries - required for the real APK packaging and
+  emulator demo in `poc-10/`
 
 For Ubuntu/Debian, the practical install set is:
 
@@ -75,6 +77,29 @@ than from the base distro image. Under rule 2, it should be installed as an
 existing binary artifact, not via a temporary helper script written in the
 workflow.
 
+For the Android APK work in `poc-10/`, the practical requirement is the
+official prebuilt Android SDK / NDK package set, installed under an SDK root
+such as `/home/richard/opt/android-sdk`. The packages used for the current demo
+were:
+
+```bash
+sdkmanager "platform-tools" \
+           "platforms;android-35" \
+           "build-tools;35.0.0" \
+           "emulator" \
+           "system-images;android-35;default;x86_64" \
+           "ndk;27.2.12479018"
+```
+
+Those provide:
+
+- `adb`
+- `aapt` / `aapt2`
+- `zipalign`
+- `apksigner`
+- the Android emulator and x86_64 system image
+- NDK LLVM tools such as `llvm-objcopy` and target `clang`
+
 ### What you need for each current target
 
 - `poc-01/`, `poc-03/`, and the Linux-hosted test in `poc-08/` run on a normal
@@ -82,8 +107,10 @@ workflow.
 - `poc-02/` and `poc-04/` need a live X11 session because they talk directly to
   the X server socket and Xauthority cookie
 - `poc-05/` needs `wasmtime`
-- `poc-06/` and `poc-07/` need `qemu-user-static`
+- `poc-06/`, `poc-07/`, and `poc-09/` need `qemu-user-static`
 - `poc-08/hello.exe` itself needs a Windows loader, typically `wine64` on Linux
+- `poc-10/` needs the Android SDK / NDK binaries above, plus either the Android
+  emulator or a real `adb`-connected device
 
 No compiler, assembler, linker, or interpreter is required to *use* the
 committed artifacts in this repo.
@@ -364,6 +391,94 @@ What is verified today:
 
 Wine still emits an environment warning about missing `wine32`, but the 64-bit
 PE itself now executes successfully.
+
+### `poc-09/` - Android-style ARM64 PIE native target
+
+The first Android-oriented native target in the repo. `hello` is a 168-byte
+`ELF64` **AArch64** binary built as `ET_DYN` / PIE instead of the earlier
+fixed-address `ET_EXEC` format used by `poc-06/`. It prints:
+
+```text
+Hello, android!
+```
+
+using direct Linux syscalls only.
+
+This is not an APK and does not use the Android Java/Kotlin app layer. It is a
+small native PIE executable, which is the relevant low-level step toward
+Android support under this repo's machine-code-only rules.
+
+- `poc-09/hello` - the main Android-style ARM64 PIE target
+- `poc-09/hello.md` - byte-by-byte explanation of the `ET_DYN` ELF header,
+  load segment, PC-relative code, and greeting data
+- `poc-09/test-hello` - runnable AArch64 verifier for `hello`
+- `poc-09/test-hello.md` - byte-by-byte explanation of the verifier
+
+Run it:
+
+```
+cd poc-09
+qemu-aarch64-static ./hello
+qemu-aarch64-static ./test-hello && echo PASS || echo FAIL
+```
+
+What is verified today:
+
+- `file` recognises `hello` as an AArch64 PIE executable
+- `readelf -h -l` reports `Type: DYN`
+- `qemu-aarch64-static ./hello` prints `Hello, android!`
+- `test-hello` exits `0` on the committed bytes and `1` if the target's
+  `ET_DYN` type bytes are corrupted
+
+This now serves as the low-level precursor to the real APK packaging step in
+`poc-10/`.
+
+### `poc-10/` - minimal Android APK demo
+
+The first actual Android package in the repo. `hello.apk` is a signed APK that
+uses `android.app.NativeActivity` with `android:hasCode="false"` and two
+embedded native libraries:
+
+- `lib/x86_64/libhello.so` for the emulator demo on this x86_64 host
+- `lib/arm64-v8a/libhello.so` for real ARM64 Android devices
+
+Both native payloads are still derived from literal machine-code bytes only.
+Their exported Android entrypoint is:
+
+```text
+ANativeActivity_onCreate
+```
+
+and the current payload implementation is intentionally minimal: it just returns
+immediately after the library is loaded.
+
+- `poc-10/hello.apk` - the main Android APK target
+- `poc-10/hello.apk.md` - explanation of the APK container, manifest semantics,
+  embedded native libraries, and Android runtime verification
+- `poc-10/test-hello` - Linux x86_64 binary verifier for the final APK bytes
+- `poc-10/test-hello.md` - byte-by-byte explanation of the verifier
+
+Run it:
+
+```bash
+cd poc-10
+./test-hello && echo PASS || echo FAIL
+adb install -r hello.apk
+adb shell am start -W -n com.richard.machinewelcome.poc10/android.app.NativeActivity
+```
+
+What is verified today:
+
+- `aapt dump badging` reports package
+  `com.richard.machinewelcome.poc10`, launchable activity
+  `android.app.NativeActivity`, and native-code ABIs `arm64-v8a` and `x86_64`
+- `test-hello` exits `0` on the committed bytes and `1` if the APK signing
+  block marker is corrupted
+- `adb install -r hello.apk` succeeds on an Android 15 x86_64 emulator
+- `adb shell am start -W ...` launches the activity successfully
+- emulator `logcat` records that `lib/x86_64/libhello.so` is loaded successfully
+- `dumpsys window` shows `com.richard.machinewelcome.poc10/android.app.NativeActivity`
+  as the focused window
 
 ## Tools (self-built)
 
