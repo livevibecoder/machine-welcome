@@ -32,7 +32,7 @@ These rules are binding for all contributions to this repo:
 
 We will attempt to build for multiple platforms:
 
-- Linux ELF x86_64 - **current** (see `poc-01/`, `poc-02/`, `poc-03/`, `poc-04/`)
+- Linux ELF x86_64 - **current** (see `poc-01/`, `poc-02/`, `poc-03/`, `poc-04/`, `poc-08/test-hello`)
 - Linux ELF ARM64
 - macOS Universal ARM64
 - iOS Universal ARM64
@@ -42,6 +42,51 @@ We will attempt to build for multiple platforms:
 - Windows PE ARM64
 - RISC-V 64-bit
 - Quantum Qubit
+
+## Host Prerequisites
+
+The repo is intentionally light on dependencies, but a few **non-base** tools
+are needed if you want to run every current target or inspect the binaries
+comfortably.
+
+On a normal Linux desktop/server install, the following are usually the extras
+to check for:
+
+- `binutils` - provides `objdump`, used throughout the docs to inspect ELF/PE
+  headers and imported symbols
+- `file` - identifies the generated binaries by container/architecture
+- `xxd` - converts literal hex bytes to binaries and helps inspect raw output;
+  on some distros this is packaged as `xxd`, on others it comes from
+  `vim-common`
+- `qemu-user-static` - required to run the committed non-x86 Linux ELF targets
+  in `poc-06/` and `poc-07/`
+- `wasmtime` - required to run the WebAssembly/WASI targets in `poc-05/`
+- `wine64` - not yet required for the repo's current automated Windows test,
+  but needed if you want to directly execute `poc-08/hello.exe` on Linux
+
+For Ubuntu/Debian, the practical install set is:
+
+```bash
+sudo apt install binutils file xxd qemu-user-static wine64
+```
+
+`wasmtime` is usually installed separately as a prebuilt binary runtime rather
+than from the base distro image. Under rule 2, it should be installed as an
+existing binary artifact, not via a temporary helper script written in the
+workflow.
+
+### What you need for each current target
+
+- `poc-01/`, `poc-03/`, and the Linux-hosted test in `poc-08/` run on a normal
+  x86_64 Linux system with no extra runtime beyond the base OS
+- `poc-02/` and `poc-04/` need a live X11 session because they talk directly to
+  the X server socket and Xauthority cookie
+- `poc-05/` needs `wasmtime`
+- `poc-06/` and `poc-07/` need `qemu-user-static`
+- `poc-08/hello.exe` itself needs a Windows loader, typically `wine64` on Linux
+
+No compiler, assembler, linker, or interpreter is required to *use* the
+committed artifacts in this repo.
 
 ## Proofs of concept
 
@@ -277,6 +322,48 @@ cd poc-07
 qemu-riscv64-static ./hello
 qemu-riscv64-static ./test-hello && echo PASS || echo FAIL
 ```
+
+### `poc-08/` - Windows PE x86_64 first target
+
+The first Windows-target artifact in the repo. `hello.exe` is a 1024-byte
+`PE32+` console executable for **Windows x86_64**. It contains one `.text`
+section holding both code and import metadata. Its intended runtime behaviour is
+simple:
+
+- call `GetStdHandle(STD_OUTPUT_HANDLE)`
+- call `WriteFile` to print `"Hello, win64!\r\n"`
+- call `ExitProcess(0)`
+
+The companion test is presently a **Linux ELF x86_64** machine-code verifier
+rather than a PE test runner. That keeps the Windows artifact testable on this
+box quickly and deterministically while still staying inside the repo rules.
+
+- `poc-08/hello.exe` - the main Windows PE64 target
+- `poc-08/hello.exe.md` - byte-by-byte explanation of the PE header, single
+  section, import table, and Win64 calling sequence
+- `poc-08/test-hello` - runnable Linux ELF x86_64 structural test for
+  `hello.exe`
+- `poc-08/test-hello.md` - byte-by-byte explanation of the host-side verifier
+
+Run it:
+
+```
+cd poc-08
+./test-hello && echo PASS || echo FAIL
+wine hello.exe
+```
+
+What is verified today:
+
+- `file` recognises `hello.exe` as `PE32+ executable (console) x86-64`
+- `objdump -x` recognises a valid PE32+ header, `Windows CUI` subsystem, an
+  import table, and imported function names from `kernel32`
+- `test-hello` exits `0` on the committed bytes and `1` if either the greeting
+  pointer byte or greeting payload bytes in `hello.exe` are corrupted
+- `wine hello.exe` runs the PE and prints `Hello, win64!`
+
+Wine still emits an environment warning about missing `wine32`, but the 64-bit
+PE itself now executes successfully.
 
 ## Tools (self-built)
 
