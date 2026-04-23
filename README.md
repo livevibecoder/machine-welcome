@@ -31,7 +31,7 @@ These rules are binding for all contributions to this repo:
 
 We will attempt to build for multiple platforms:
 
-- Linux ELF x86_64 - **current** (see `poc-01/`)
+- Linux ELF x86_64 - **current** (see `poc-01/`, `poc-02/`)
 - Linux ELF ARM64
 - macOS Universal ARM64
 - iOS Universal ARM64
@@ -61,6 +61,66 @@ cd poc-01
 cat greeting.txt
 ./test-hello && echo PASS || echo FAIL
 ```
+
+### `poc-02/` - Linux ELF x86_64 X11 window (graphical)
+
+A 696-byte ELF64 executable and its 220-byte test. Opens a real X11 window
+(400x300, dark blue, titlebar-less), records `opened` to `status.log`,
+blocks until the user clicks inside the window, records `event`, and
+exits. No libc, no Xlib: raw X11 wire protocol over a Unix-domain socket,
+with a hard-coded `MIT-MAGIC-COOKIE-1` and socket path baked into the
+binary.
+
+- `poc-02/window` - the main binary (graphical output, X11)
+- `poc-02/window.md` - byte-by-byte explanation of ELF, X11 request templates, opcode sequence, and syscalls
+- `poc-02/test-window` - test binary: `exit 0` iff `status.log` starts with `"opened\n"`
+- `poc-02/test-window.md` - byte-by-byte explanation of the test
+
+Run it:
+
+```
+cd poc-02
+./window &              # opens the window
+# click inside the window to generate a ButtonPress event
+./test-window && echo PASS || echo FAIL
+cat status.log
+```
+
+Because the `MIT-MAGIC-COOKIE-1` is hard-coded at build time, `poc-02/window`
+must be re-hexed whenever the X session cookie rotates (typically on each
+login). The binary is tied to `DISPLAY=:1` on the author's machine; see
+`window.md` for how to re-build with a new cookie.
+
+## Tools (self-built)
+
+Per rule 5, the AI may use external tools, but per rules 1 and 2 any tool
+the AI *commits* must itself be a binary with a Markdown companion. This
+directory contains hand-hexed tools the AI uses to build other POCs in
+this repo.
+
+### `tools/mkelf` - Linux ELF x86_64 wrapper
+
+A 349-byte binary that reads raw code+data on stdin and emits a complete
+ELF64 executable on stdout. This replaces the otherwise-repetitive
+120-byte ELF-header-plus-program-header boilerplate in every POC body.
+
+- `tools/mkelf` - the tool
+- `tools/mkelf.md` - byte-by-byte explanation, including the 120-byte output template and the self-modifying writes that patch `p_filesz` / `p_memsz`
+- `tools/test-mkelf` - test binary (itself built with `mkelf`): `exit 0` iff the first 96 bytes on stdin match the expected `mkelf` header prefix
+- `tools/test-mkelf.md` - byte-by-byte explanation of the test
+
+Usage:
+
+```
+cd tools
+echo 'b83c000000bf2a0000000f05' | xxd -r -p | ./mkelf > /tmp/exit42
+chmod +x /tmp/exit42 ; /tmp/exit42 ; echo $?    # → 42
+
+./mkelf < /dev/null | ./test-mkelf && echo PASS || echo FAIL
+```
+
+Self-hosting works: `dd if=mkelf bs=1 skip=120 | mkelf > mkelf-v2`
+produces a functionally-identical rebuilt copy.
 
 ## How to use
 
