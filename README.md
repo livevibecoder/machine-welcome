@@ -163,6 +163,33 @@ Like `poc-02/`, `poc-04/note-view` hard-codes the current X session's
 screen root window id. Re-derive these on a fresh session and re-hex the
 binary; see `note-view.md` for the relevant byte offsets.
 
+#### `poc-04/note-edit` - interactive X11 note editor with sorted display
+
+A 2346-byte ELF64 executable and its 249-byte test, also wrapped by
+`tools/mkelf`. `note-edit` opens a real 600×400 X11 window titled
+`"note-edit"`, shows an editable `New:` input line, accepts a small
+hard-coded key set (lowercase letters, digits, space, `-`, `,`, `.`, `'`,
+`/`, Backspace, Enter, Escape), appends the typed line to `notes.db`, then
+reloads the database and displays the notes in **sorted order**. No libc,
+no Xlib: raw X11 wire protocol plus direct Linux syscalls only.
+
+- `poc-04/note-edit` - the interactive GUI binary
+- `poc-04/note-edit.md` - explanation of the X11 event loop, keycode map,
+  append path, and in-memory insertion sort
+- `poc-04/test-note-edit` - test binary: `exit 0` iff the 9 bytes at file
+  offset `0x784` of `./note-edit` are `"note-edit"`
+- `poc-04/test-note-edit.md` - explanation of the test
+
+Run it:
+
+```
+cd poc-04
+./note-edit
+# type a short line, press Enter to save, Escape to quit
+# launch again: notes are reloaded from notes.db and shown sorted
+./test-note-edit && echo PASS || echo FAIL
+```
+
 ## Tools (self-built)
 
 Per rule 5, the AI may use external tools, but per rules 1 and 2 any tool
