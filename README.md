@@ -34,8 +34,8 @@ We will attempt to build for multiple platforms:
 
 - Linux ELF x86_64 - **current** (see `poc-01/`, `poc-02/`, `poc-03/`, `poc-04/`, `poc-08/test-hello`)
 - Linux ELF ARM64
-- macOS Universal ARM64
-- iOS Universal ARM64
+- macOS arm64 Mach-O - host-verified structural POC in `poc-11/`
+- iOS arm64 Mach-O - host-verified structural POC in `poc-11/`
 - Android ARM64
 - WebAssembly
 - Windows PE x86_64
@@ -115,6 +115,9 @@ Those provide:
 - `poc-05/` needs `wasmtime`
 - `poc-06/`, `poc-07/`, and `poc-09/` need `qemu-user-static`
 - `poc-08/hello.exe` itself needs a Windows loader, typically `wine64` on Linux
+- `poc-11/test-hello-macos` and `poc-11/test-hello-ios` run directly on x86_64
+  Linux; the Apple Mach-O targets they verify are structural-only for now and
+  are not yet runtime-demonstrated on Apple systems
 - `poc-10/` needs the Android SDK / NDK binaries above, plus either the Android
   emulator or a real `adb`-connected device
 
@@ -491,6 +494,70 @@ What is verified today:
 - emulator `logcat` records that `lib/x86_64/libhello.so` is loaded successfully
 - `dumpsys window` shows `com.${USER}.machinewelcome.poc10/android.app.NativeActivity`
   as the focused window
+
+### `poc-11/` - Apple Mach-O arm64 structural POCs
+
+The first Apple-target artifacts in the repo live in one shared directory:
+
+- `hello-macos` - a 170-byte `Mach-O 64-bit arm64 executable`
+- `hello-ios` - a 168-byte `Mach-O 64-bit arm64 executable`
+
+Both are deliberately minimal single-slice `arm64` files rather than full app
+bundles or signed Apple deliverables. Each file contains:
+
+- a Mach-O 64-bit header
+- `MH_EXECUTE`
+- one `LC_SEGMENT_64` `__TEXT` mapping
+- one `LC_BUILD_VERSION` load command
+- one `LC_MAIN` entrypoint pointing at a 4-byte `ret`
+- one inline greeting string
+
+The macOS / iOS distinction is expressed structurally through
+`LC_BUILD_VERSION`:
+
+- `hello-macos` uses platform `macOS`
+- `hello-ios` uses platform `iOS`
+
+The companion tests are **Linux ELF x86_64** verifiers rather than Apple-native
+test runners:
+
+- `poc-11/test-hello-macos`
+- `poc-11/test-hello-ios`
+
+Those verifiers open the sibling Mach-O file and check:
+
+- Mach-O magic
+- `arm64` CPU type
+- `MH_EXECUTE`
+- the platform word inside `LC_BUILD_VERSION`
+- the fixed greeting payload bytes
+
+Run it:
+
+```bash
+cd poc-11
+./test-hello-macos && echo PASS || echo FAIL
+./test-hello-ios && echo PASS || echo FAIL
+file hello-macos hello-ios
+```
+
+What is verified today:
+
+- `file` recognises both Apple binaries as `Mach-O 64-bit arm64 executable`
+- `test-hello-macos` exits `0` on the committed bytes and `1` if the macOS
+  platform byte is corrupted
+- `test-hello-ios` exits `0` on the committed bytes and `1` if the iOS platform
+  byte is corrupted
+
+What is **not** yet verified today:
+
+- launch on real macOS
+- launch on real iOS
+- code signing
+- app bundles, `.ipa`, or simulator packaging
+
+So `poc-11/` is an honest Apple-format milestone on Linux, but still a
+structural proof rather than a runtime Apple deployment proof.
 
 ## Tools (self-built)
 
