@@ -31,7 +31,7 @@ These rules are binding for all contributions to this repo:
 
 We will attempt to build for multiple platforms:
 
-- Linux ELF x86_64 - **current** (see `poc-01/`, `poc-02/`)
+- Linux ELF x86_64 - **current** (see `poc-01/`, `poc-02/`, `poc-03/`, `poc-04/`)
 - Linux ELF ARM64
 - macOS Universal ARM64
 - iOS Universal ARM64
@@ -90,6 +90,78 @@ Because the `MIT-MAGIC-COOKIE-1` is hard-coded at build time, `poc-02/window`
 must be re-hexed whenever the X session cookie rotates (typically on each
 login). The binary is tied to `DISPLAY=:1` on the author's machine; see
 `window.md` for how to re-build with a new cookie.
+
+### `poc-03/` - Linux ELF x86_64 note-taker with an append-only database
+
+A 505-byte ELF64 executable and its 255-byte test, both wrapped by
+`tools/mkelf`. Reads text from stdin, appends it as a length-prefixed
+record to a tiny on-disk "database" (`notes.db`), then re-reads the
+whole file and prints every note so far with an ANSI-green bullet.
+Terminal-only (no X11), no libc — seven direct Linux syscalls.
+
+- `poc-03/note` - the main binary (stdin → `notes.db` → ANSI display)
+- `poc-03/note.md` - byte-by-byte explanation of every opcode, the record format, and the BSS buffer layout
+- `poc-03/test-note` - test binary: `exit 0` iff the first record in `notes.db` is exactly `"hello\n"`
+- `poc-03/test-note.md` - byte-by-byte explanation of the test
+
+Record format on disk (one per entry, appended):
+
+```
++--------------------+------------------------+
+|  length: u32 LE    |  text: length bytes    |
++--------------------+------------------------+
+```
+
+Run it:
+
+```
+cd poc-03
+rm -f notes.db
+echo "first entry"  | ./note
+echo "second entry" | ./note
+./note                          # interactive: type, press Enter, then Ctrl-D
+xxd notes.db                    # inspect the raw records
+
+printf 'hello\n' | ./note > /dev/null
+./test-note && echo PASS || echo FAIL
+```
+
+### `poc-04/` - Linux ELF x86_64 X11 GUI viewer for `notes.db`
+
+A 1060-byte ELF64 executable and its 249-byte test, both wrapped by
+`tools/mkelf`. `note-view` opens a real 600×400 X11 window titled
+`"note-view"`, reads `poc-03/note`'s `notes.db` record format, and renders
+every record as one line of black text on white using the X11 `"fixed"`
+font. Closes cleanly on any key press, mouse click, or WM close button. No
+libc, no Xlib — raw X11 wire protocol, eight direct Linux syscalls, with
+the same session-coupled `MIT-MAGIC-COOKIE-1` hard-coding as `poc-02/`
+plus the screen root window id.
+
+- `poc-04/note-view` - the main binary (X11 GUI, reads `notes.db`)
+- `poc-04/note-view.md` - byte-by-byte explanation of ELF layout, X11
+  request templates, the dispatch/redraw loop, and the four independent
+  exit paths
+- `poc-04/test-note-view` - test binary: `exit 0` iff the 9 bytes at file
+  offset `0x384` of `./note-view` are `"note-view"` (i.e. the WM_NAME
+  payload is intact)
+- `poc-04/test-note-view.md` - byte-by-byte explanation of the test
+
+Run it:
+
+```
+cd poc-04
+# works with an empty or missing notes.db (window opens, no text drawn)
+../poc-03/note <<<'hello world'
+../poc-03/note <<<'second entry'
+./note-view &          # window appears with the two lines
+# click the window, press any key, or hit the WM close button → clean exit
+./test-note-view && echo PASS || echo FAIL
+```
+
+Like `poc-02/`, `poc-04/note-view` hard-codes the current X session's
+`MIT-MAGIC-COOKIE-1`, the Unix socket path `/tmp/.X11-unix/X1`, and the
+screen root window id. Re-derive these on a fresh session and re-hex the
+binary; see `note-view.md` for the relevant byte offsets.
 
 ## Tools (self-built)
 
