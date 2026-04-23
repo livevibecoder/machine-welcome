@@ -380,7 +380,8 @@ Ten syscalls total.
 
 ## Supported behaviour verified
 
-Verified manually / with temporary external tooling:
+Verified manually and with existing external binary tooling available on the
+host:
 
 1. launch `note-edit`
 2. stored notes are drawn

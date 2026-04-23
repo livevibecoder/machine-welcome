@@ -21,11 +21,12 @@ The AI will also generate a Markdown file with a detailed explanation of the cod
 These rules are binding for all contributions to this repo:
 
 1. **Binaries only.** The AI can produce only *binaries* - directly-executable machine code in the native format of one of the target architectures (ELF, Mach-O, PE, WebAssembly, ...). It may **not** commit source code in any human-readable language (C, Python, JavaScript, assembly, etc.) or hand-written build scripts. Binaries may be produced via tools such as `xxd -r -p` fed with literal hex bytes, but those hex bytes **are** the source of truth - they are not "compiled" from anything else.
-2. **Every binary ships with a Markdown explanation.** For each binary committed, a matching `<binary>.md` must describe its ELF/PE/... layout and every opcode, byte by byte, in enough detail that a reader can mentally single-step through the code.
-3. **Tests as binaries.** For each target binary, ship a test binary (also in pure machine code) that exercises it. Tests use the standard Unix exit-code convention: `0` for pass, non-zero for fail.
-4. **Cross-architecture.** Produce machine-code test suites for other target architectures as soon as possible, running them under virtual machines or emulators (QEMU, Wasmtime, Apple Silicon VM, ...).
-5. **External help is allowed.** The AI may download or ask the user to install tools (assemblers, disassemblers, emulators, linkers) that help produce or verify binaries. These tools are not committed.
-6. **Libraries and linking are allowed.** Binaries may link against libraries (libc, X11, Metal, ...), but the Markdown must document the exact interface used (calling convention, struct layouts, symbols).
+2. **Binary tools only.** The AI may use only tools that already exist in binary form, unless it first creates the tool itself as a machine-code binary under these same repo rules. It may **not** write temporary human-readable helper programs or scripts (C, Python, JavaScript, assembly, shell, etc.) even for intermediate build, test, or opcode-derivation steps.
+3. **Every binary ships with a Markdown explanation.** For each binary committed, a matching `<binary>.md` must describe its ELF/PE/... layout and every opcode, byte by byte, in enough detail that a reader can mentally single-step through the code.
+4. **Tests as binaries.** For each target binary, ship a test binary (also in pure machine code) that exercises it. Tests use the standard Unix exit-code convention: `0` for pass, non-zero for fail.
+5. **Cross-architecture.** Produce machine-code test suites for other target architectures as soon as possible, running them under virtual machines or emulators (QEMU, Wasmtime, Apple Silicon VM, ...).
+6. **External help is allowed.** The AI may download or ask the user to install tools (assemblers, disassemblers, emulators, linkers) that help produce or verify binaries. These tools are not committed.
+7. **Libraries and linking are allowed.** Binaries may link against libraries (libc, X11, Metal, ...), but the Markdown must document the exact interface used (calling convention, struct layouts, symbols).
 
 ## Tech Details
 
@@ -190,9 +191,96 @@ cd poc-04
 ./test-note-edit && echo PASS || echo FAIL
 ```
 
+### `poc-05/` - WebAssembly / WASI proof of execution and testing
+
+The first non-ELF target in the repo. `hello.wasm` is a 139-byte WebAssembly
+binary module that runs as a WASI command under `wasmtime` and prints
+`"Hello, wasm!\n"`. `test-hello.wasm` is a 364-byte WebAssembly binary test
+module that opens its sibling `hello.wasm` via a preopened directory and
+checks fixed bytes in the module header and greeting payload, exiting `0` on
+success and `1` on failure.
+
+- `poc-05/hello.wasm` - the main WebAssembly target
+- `poc-05/hello.wasm.md` - byte-by-byte explanation of the module format,
+  imports, exports, code, and data segment
+- `poc-05/test-hello.wasm` - the runnable WebAssembly test binary
+- `poc-05/test-hello.wasm.md` - byte-by-byte explanation of the test module
+
+Run it:
+
+```
+cd poc-05
+~/.wasmtime/bin/wasmtime run hello.wasm
+~/.wasmtime/bin/wasmtime run --dir=. test-hello.wasm && echo PASS || echo FAIL
+```
+
+This target relies on the external runtime `wasmtime`, which is allowed by
+rule 6 and is not committed to the repo. Under rule 2, the runtime should be
+installed or supplied as an existing binary artifact (for example from an
+official prebuilt release or a package manager), not via a temporary
+human-readable helper script written as part of the workflow.
+
+### `poc-06/` - Linux ELF ARM64 proof of execution and testing
+
+The first runnable non-x86 ELF target in the repo. `hello` is a 166-byte
+Linux ELF64 **AArch64** executable that writes `"Hello, arm64!\n"` and exits.
+`test-hello` is a 294-byte Linux ELF64 **AArch64** test binary that opens
+its sibling `hello`, reads the first 192 bytes into memory, and checks the ELF
+magic plus the fixed greeting bytes at file offset `152`. It exits `0` on
+success and `1` on failure.
+
+- `poc-06/hello` - the main ARM64 ELF target
+- `poc-06/hello.md` - byte-by-byte explanation of the ELF header, program
+  header, AArch64 instructions, and inline greeting data
+- `poc-06/test-hello` - the runnable ARM64 test binary
+- `poc-06/test-hello.md` - byte-by-byte explanation of the test
+
+Run it:
+
+```
+cd poc-06
+qemu-aarch64-static ./hello
+qemu-aarch64-static ./test-hello && echo PASS || echo FAIL
+```
+
+This target relies on `qemu-user-static` as allowed by rule 6. On the current
+machine it was installed with:
+
+```
+sudo apt install qemu-user-static
+```
+
+### `poc-07/` - Linux ELF RISC-V 64 proof of execution and testing
+
+The first runnable `RISC-V 64-bit` target in the repo. `hello` is a 169-byte
+Linux ELF64 **RISC-V** executable that writes `"Hello, rv64!\n"` and exits.
+`test-hello` is a 470-byte Linux ELF64 **RISC-V** test binary that opens its
+own sibling `hello`, reads the first 192 bytes into memory, and checks:
+
+- the ELF magic
+- the greeting payload bytes at file offset `156`
+- one code byte of the `addi a1, a1, 32` pointer instruction so the earlier
+  pointer bug is caught too
+
+It exits `0` on success and `1` on failure.
+
+- `poc-07/hello` - the main RV64 ELF target
+- `poc-07/hello.md` - byte-by-byte explanation of the ELF layout, RV64
+  instructions, and inline greeting data
+- `poc-07/test-hello` - the runnable RV64 test binary
+- `poc-07/test-hello.md` - byte-by-byte explanation of the test
+
+Run it:
+
+```
+cd poc-07
+qemu-riscv64-static ./hello
+qemu-riscv64-static ./test-hello && echo PASS || echo FAIL
+```
+
 ## Tools (self-built)
 
-Per rule 5, the AI may use external tools, but per rules 1 and 2 any tool
+Per rule 6, the AI may use external tools, but per rules 1 and 2 any tool
 the AI *commits* must itself be a binary with a Markdown companion. This
 directory contains hand-hexed tools the AI uses to build other POCs in
 this repo.
