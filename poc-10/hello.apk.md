@@ -23,7 +23,7 @@ native shared library.
 This APK has been verified in four ways:
 
 - `aapt dump badging` reports:
-  - package `com.richard.machinewelcome.poc10`
+  - package `com.${USER}.machinewelcome.poc10`
   - `sdkVersion:'30'`
   - `targetSdkVersion:'35'`
   - launchable activity `android.app.NativeActivity`
@@ -33,7 +33,7 @@ This APK has been verified in four ways:
 - launching it with:
 
 ```text
-adb shell am start -W -n com.richard.machinewelcome.poc10/android.app.NativeActivity
+adb shell am start -W -n com.${USER}.machinewelcome.poc10/android.app.NativeActivity
 ```
 
 returns:
@@ -41,7 +41,7 @@ returns:
 ```text
 Status: ok
 LaunchState: COLD
-Activity: com.richard.machinewelcome.poc10/android.app.NativeActivity
+Activity: com.${USER}.machinewelcome.poc10/android.app.NativeActivity
 TotalTime: 192
 WaitTime: 194
 Complete
@@ -51,7 +51,7 @@ The emulator log then records:
 
 ```text
 nativeloader: Load ... /lib/x86_64/libhello.so ... ok
-ActivityTaskManager: Displayed com.richard.machinewelcome.poc10/android.app.NativeActivity
+ActivityTaskManager: Displayed com.${USER}.machinewelcome.poc10/android.app.NativeActivity
 ```
 
 So the APK is not just structurally valid; it is installed, launched, and the
@@ -95,7 +95,7 @@ Those are the fixed bytes the companion verifier checks.
 
 The binary manifest encodes the following key choices:
 
-- package name: `com.richard.machinewelcome.poc10`
+- package name: `com.${USER}.machinewelcome.poc10`
 - min SDK: `30`
 - target SDK: `35`
 - application has no dex bytecode: `android:hasCode="false"`

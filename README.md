@@ -85,7 +85,7 @@ curl https://wasmtime.dev/install.sh -sSf | bash
 
 For the Android APK work in `poc-10/`, the practical requirement is the
 official prebuilt Android SDK / NDK package set, installed under an SDK root
-such as `/home/richard/opt/android-sdk`. The packages used for the current demo
+such as `/home/${USER}/opt/android-sdk`. The packages used for the current demo
 were:
 
 ```bash
@@ -476,20 +476,20 @@ Run it:
 cd poc-10
 ./test-hello && echo PASS || echo FAIL
 adb install -r hello.apk
-adb shell am start -W -n com.richard.machinewelcome.poc10/android.app.NativeActivity
+adb shell am start -W -n com.${USER}.machinewelcome.poc10/android.app.NativeActivity
 ```
 
 What is verified today:
 
 - `aapt dump badging` reports package
-  `com.richard.machinewelcome.poc10`, launchable activity
+  `com.${USER}.machinewelcome.poc10`, launchable activity
   `android.app.NativeActivity`, and native-code ABIs `arm64-v8a` and `x86_64`
 - `test-hello` exits `0` on the committed bytes and `1` if the APK signing
   block marker is corrupted
 - `adb install -r hello.apk` succeeds on an Android 15 x86_64 emulator
 - `adb shell am start -W ...` launches the activity successfully
 - emulator `logcat` records that `lib/x86_64/libhello.so` is loaded successfully
-- `dumpsys window` shows `com.richard.machinewelcome.poc10/android.app.NativeActivity`
+- `dumpsys window` shows `com.${USER}.machinewelcome.poc10/android.app.NativeActivity`
   as the focused window
 
 ## Tools (self-built)

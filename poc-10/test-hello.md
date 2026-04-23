@@ -51,7 +51,7 @@ The Android runtime proof is separate and is provided by:
 
 ```bash
 adb install hello.apk
-adb shell am start -W -n com.richard.machinewelcome.poc10/android.app.NativeActivity
+adb shell am start -W -n com.${USER}.machinewelcome.poc10/android.app.NativeActivity
 ```
 
 ## File layout
