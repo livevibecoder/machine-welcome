@@ -54,6 +54,8 @@ comfortably.
 | `binutils` | Provides `objdump` and related binary-inspection tools used throughout the docs. |
 | `file` | Identifies generated binaries by container and architecture. |
 | `xxd` | Converts literal hex bytes to binaries and helps inspect raw output; on some distros it comes from `vim-common`. |
+| `wget` | Downloads the Android command-line tools archive in the setup example below. |
+| `unzip` | Extracts the Android command-line tools archive in the setup example below. |
 | `qemu-user-static` | Runs committed non-x86 native targets in `poc-06/`, `poc-07/`, and `poc-09/`. |
 | `wasmtime` | Runs the WebAssembly / WASI targets in `poc-05/`. |
 | `wine64` | Lets you directly execute `poc-08/hello.exe` on Linux. |
@@ -62,7 +64,7 @@ comfortably.
 For Ubuntu/Debian, the practical install set is:
 
 ```bash
-sudo apt install binutils file xxd qemu-user-static wine64
+sudo apt install binutils file xxd wget unzip qemu-user-static wine64
 ```
 
 `wasmtime` is usually installed separately as a prebuilt binary runtime rather
@@ -78,10 +80,24 @@ curl https://wasmtime.dev/install.sh -sSf | bash
 
 For the Android APK work in `poc-10/`, the practical requirement is the
 official prebuilt Android SDK / NDK package set, installed under an SDK root
-such as `/home/${USER}/opt/android-sdk`. The packages used for the current demo
-were:
+such as `$HOME/android-sdk`. 
+
+You can do: 
+```bash
+mkdir -p "$HOME/android-sdk/cmdline-tools"
+cd /tmp
+cmdline_tools_zip="commandlinetools-linux-14742923_latest.zip"
+wget "https://dl.google.com/android/repository/${cmdline_tools_zip}"
+unzip "$cmdline_tools_zip"
+mv cmdline-tools "$HOME/android-sdk/cmdline-tools/latest"
+export ANDROID_SDK_ROOT="$HOME/android-sdk"
+export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+```
+
+Then install the packages:
 
 ```bash
+yes | sdkmanager --licenses
 sdkmanager "platform-tools" \
            "platforms;android-35" \
            "build-tools;35.0.0" \
