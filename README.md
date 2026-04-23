@@ -77,6 +77,12 @@ than from the base distro image. Under rule 2, it should be installed as an
 existing binary artifact, not via a temporary helper script written in the
 workflow.
 
+One way to install it is:
+
+```bash
+curl https://wasmtime.dev/install.sh -sSf | bash
+```
+
 For the Android APK work in `poc-10/`, the practical requirement is the
 official prebuilt Android SDK / NDK package set, installed under an SDK root
 such as `/home/richard/opt/android-sdk`. The packages used for the current demo
@@ -291,6 +297,12 @@ rule 6 and is not committed to the repo. Under rule 2, the runtime should be
 installed or supplied as an existing binary artifact (for example from an
 official prebuilt release or a package manager), not via a temporary
 human-readable helper script written as part of the workflow.
+
+One way to install it is:
+
+```bash
+curl https://wasmtime.dev/install.sh -sSf | bash
+```
 
 ### `poc-06/` - Linux ELF ARM64 proof of execution and testing
 
