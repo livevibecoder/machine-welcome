@@ -3,6 +3,12 @@
 This file defines the product behavior that the platform-specific binaries are
 meant to converge on.
 
+**Implementation vocabulary** (X11 request names, syscall-level phrases, in-memory
+labels like *slot* or *NOTE_COUNT*) is in the
+[**product notes glossary**](glossary.md) so it does not need to be redefined
+here. This file states *what* the product does; the glossary states *how the Linux
+reference names those pieces* in code and disassembly.
+
 ## Shared storage format
 
 The product reuses the existing on-disk note framing already documented in

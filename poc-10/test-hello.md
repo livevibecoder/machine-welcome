@@ -111,6 +111,8 @@ exit(0)
 fail: exit(1)
 ```
 
+**Control flow:** `syscall` with `open(2)` opens `hello.apk` from the embedded path; `read(2)` fills `0x401000..` and the test requires at least `0xa000` bytes so offset `0x9ff0` is valid. The x86_64 code then does one `cmp` on the ZIP magic and seven **`mov esi/edi; mov ecx; cld; repe cmpsb`** memcmp blocks against embedded expected strings, each **`jne fail`**. The epilogue is **`mov eax, 60` / `xor edi, edi` / `syscall`** (success) or **`mov edi, 1`** (failure) for `exit(2)`.
+
 ## Instruction walk-through
 
 ### Block 1 — open sibling APK

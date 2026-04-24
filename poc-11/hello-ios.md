@@ -157,7 +157,7 @@ ret
 
 Byte detail:
 
-- `c0 03 5f d6` = encoded `ret`
+- `c0 03 5f d6` = encoded `ret` (same **AArch64** `RET` as in `hello-macos`; see that file for the one-line execution story).
 
 The code is intentionally minimal because runtime behavior is not the proof
 being claimed yet; container correctness is.

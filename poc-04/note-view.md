@@ -10,6 +10,11 @@ the client (e.g. user clicks the WM close button).
 It is the direct graphical counterpart to `poc-03/note`: same storage, same
 record format, same limitations.
 
+**Terminology:** [`ImageText8`](../product-notes/glossary.md#imagetext8), [raw
+X11](../product-notes/glossary.md#raw-x11), and related terms are in the
+[product notes glossary](../product-notes/glossary.md); PoC-04-specific pointers
+are in [`glossary.md`](glossary.md).
+
 ## Usage
 
 ```bash

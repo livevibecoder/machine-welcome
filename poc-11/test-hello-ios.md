@@ -63,6 +63,8 @@ exit(0)
 fail: exit(1)
 ```
 
+**Control flow:** identical strategy to `test-hello-macos` (Linux ELF opens `./hello-ios`, `read` into `0x401000`, compare magic/header/platform/greeting) but the expected `LC_BUILD_VERSION` platform word and greeting length match the iOS artifact (`12` bytes for `Hello, iOS!\n`).
+
 ## Code walkthrough
 
 ### Block 1 — open sibling Mach-O

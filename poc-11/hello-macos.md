@@ -156,10 +156,9 @@ ret
 
 Byte view of the instruction word:
 
-- `c0 03 5f d6` = encoded `ret`
+- `c0 03 5f d6` = encoded `ret` (AArch64 `RET` without explicit operand: return to the address in the link register `x30`).
 
-If a macOS loader were to start at `entryoff = 0x98`, control would immediately
-return. This keeps the proof focused on the Mach-O container and metadata.
+If a macOS loader were to start at `entryoff = 0x98`, the CPU would execute that single **`ret`** and then return to whatever address the loader placed in `lr`—in a real process that is defined by the dynamic loader; this artifact does not model a full user `main`. The proof is the **Mach-O** layout and metadata, not application behavior.
 
 ## Greeting payload
 

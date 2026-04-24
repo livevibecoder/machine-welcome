@@ -19,6 +19,10 @@ Hello, android!
 
 and exits `0`.
 
+## How it works (logic)
+
+The eight-instruction program is the same idiom as `poc-06`, but the image is `ET_DYN` with segment base `0x10000`: **`adr x1, msg`** is PC-relative, so the code never assumes a fixed absolute text address. **`mov x0, #1`**, **`mov x2, #16`**, **`mov x8, #64`**, **`svc #0`** implement `write(1, &msg, 16)`; **`mov x0, #0`**, **`mov x8, #93`**, **`svc #0`** implement `exit(0)`. The inline string at vaddr `0x10098` is 16 bytes including the newline.
+
 ## Why this target is different from `poc-06`
 
 `poc-06/hello` is a fixed-address Linux ARM64 `ET_EXEC` binary.

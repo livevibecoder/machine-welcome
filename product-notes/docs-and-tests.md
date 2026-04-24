@@ -2,6 +2,9 @@
 
 This file captures the delivery pattern for the cross-platform notes product.
 
+**Vocabulary** (ImageText8, structural tests, syscalls, …):
+[`product-notes/glossary.md`](glossary.md).
+
 ## Per-artifact rule
 
 For every committed binary artifact, ship:

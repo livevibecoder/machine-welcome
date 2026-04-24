@@ -66,6 +66,8 @@ exit(0)
 fail: exit(1)
 ```
 
+**Control flow:** standard **`open` → `read` → `cmp` / `repe cmpsb` → `exit`** pattern on x86_64 Linux syscalls: `test-hello-macos` never runs the Mach-O; it only byte-matches the committed file after mapping it at `0x401000`. Success uses `sys_exit` with `edi = 0`; any failed check shares the `fail` path with `edi = 1`.
+
 ## Code walkthrough
 
 ### Block 1 — open sibling Mach-O

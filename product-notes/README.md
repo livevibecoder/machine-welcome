@@ -15,6 +15,7 @@ the implementation notes for the other target platforms in the approved plan.
 | Artifact | Type | Purpose |
 | --- | --- | --- |
 | [`product-contract.md`](product-contract.md) | contract | Shared behavior, storage model, and UI rules for the product |
+| [`glossary.md`](glossary.md) | reference | [ImageText8](glossary.md#imagetext8), *IT8*, *slot*, *NOTE_COUNT*, *BSS* — repo-wide terms; [PoC-04 index](../poc-04/glossary.md) for `note-edit` / `note-view` pointers |
 | [`notes-linux-x86_64.md`](notes-linux-x86_64.md) | binary doc | Byte-level explanation of the Linux x86_64 reference build |
 | [`test-notes-linux-x86_64.md`](test-notes-linux-x86_64.md) | test doc | Explanation of the Linux x86_64 structural verifier |
 | [`test-notes-linux-x86_64-clicks.md`](test-notes-linux-x86_64-clicks.md) | test doc | Explanation of the click-path structural verifier |

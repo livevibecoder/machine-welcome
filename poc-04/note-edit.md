@@ -14,6 +14,12 @@ It stays within the repo rules:
 - raw X11 wire protocol
 - matching binary test and Markdown companion
 
+**Terminology:** names like [`ImageText8`](../product-notes/glossary.md#imagetext8),
+[raw X11](../product-notes/glossary.md#raw-x11), [BSS](../product-notes/glossary.md#bss),
+[mkelf](../product-notes/glossary.md#mkelf), and **syscall** numbers are defined in
+the [product notes glossary](../product-notes/glossary.md). A **PoC-04 table of
+Contents / pointers** is in [`glossary.md`](glossary.md) in this directory.
+
 Like `poc-03/note` and `poc-04/note-view`, the on-disk database is still the
 same append-only format:
 
@@ -313,11 +319,31 @@ if type == KeyPress: handle_key
 else:                loop
 ```
 
+**How this implements the editor:** each iteration waits for the next **X
+event** (see [X11 events in the glossary](../product-notes/glossary.md#x11-events-relevant-to-this-product);
+[`recvfrom` / main loop](../product-notes/glossary.md#recvfrom-loop)). The socket
+`rbx` is the [X11 session coupling](#session-coupling). **`EVENT_BUF`** is
+`0x404000` (32 bytes — enough for a core **KeyPress** / **Expose**). Masking
+`& 0x7f` matches the [event dispatcher pattern](../product-notes/notes-linux-x86_64.md#event-dispatcher) in
+the product build. **`Expose`** means “repaint” → full **`redraw`** (reload from
+disk, sort, [`ImageText8`](../product-notes/glossary.md#imagetext8) for every
+line). **`KeyPress`** routes through [Section B](#section-b--key-handler). Any
+other type (e.g. an unrequested event) is ignored by jumping back to
+`recvfrom` — so spurious input does not corrupt state.
+
+**How this stays compatible with a later `ButtonPress` product:** the product
+build patches the same loop so **`ButtonPress` (`4`)** is recognized; the
+`poc-04` source shown here [ignores](#limitations) non-key events.
+
 Notably:
 
-- button clicks are ignored (they no longer close the window)
-- WM close still works because the X server kills the connection, `recvfrom`
-  returns `0`, and the binary exits via the `rax <= 0` path
+- In **`note-edit`**, **button** events are not handled (ignored by the
+  fall-through to `loop`); the window is not expected to be clicked for
+  editing.
+- Forced exit when the X connection closes: the server may tear down the
+  client; `recvfrom` can return `0` or an error, and the `rax <= 0` (or
+  branch-equivalent) path **exits** the process. See
+  [Section I — exit](#section-i--exit).
 
 ### Section H — helper routines
 

@@ -17,6 +17,8 @@ The code is intended to:
 2. call `WriteFile` to print `Hello, win64!\r\n`
 3. call `ExitProcess(0)`
 
+**Control flow (mnemonic):** `sub rsp, 0x38` reserves Windows x64 home space; `mov ecx, -11` / `call [IAT GetStdHandle]` gets stdout; `mov rcx, rax` / `lea rdx, [greeting]` / `mov r8d, 15` / `lea r9, [stack scratch]` / `call [IAT WriteFile]` prints; `xor ecx, ecx` / `call [IAT ExitProcess]` returns `0` to the loader.
+
 ## Current verification status
 
 This PE has now been verified in three ways on the current Linux host:

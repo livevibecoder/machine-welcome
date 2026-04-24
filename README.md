@@ -130,7 +130,7 @@ committed artifacts in this repo.
 
 | Product | Status | Platforms | Docs |
 | --- | --- | --- | --- |
-| `product-notes` | First committed product reference build present. | Linux x86_64 binary now; Linux ARM64, Windows, Android/iOS, macOS, and browser-hosted Wasm implementation notes are in place. | [`product-notes/README.md`](product-notes/README.md), [`product-notes/product-contract.md`](product-notes/product-contract.md) |
+| `product-notes` | First committed product reference build present. | Linux x86_64 binary now; Linux ARM64, Windows, Android/iOS, macOS, and browser-hosted Wasm implementation notes are in place. | [`product-notes/README.md`](product-notes/README.md), [`product-notes/product-contract.md`](product-notes/product-contract.md), [`product-notes/glossary.md`](product-notes/glossary.md) |
 
 ## Proofs of concept
 

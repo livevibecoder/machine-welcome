@@ -1,5 +1,7 @@
 # poc-04/test-note-view — smoke test for `note-view`
 
+**Terminology:** [anchored structural test](../product-notes/glossary.md#anchored-structural-test), [pread64](../product-notes/glossary.md#pread64), [ChangeProperty / WM_NAME](../product-notes/glossary.md#changeproperty-and-wm_name).
+
 `test-note-view` is a **249-byte** statically-linked ELF64 binary that asserts
 a single structural invariant of the sibling binary: the bytes
 `"note-view"` (the X11 `WM_NAME` payload) live at file offset `0x384` of

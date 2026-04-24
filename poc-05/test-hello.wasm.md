@@ -20,6 +20,10 @@ Exit code:
 - `0` = pass
 - `1` = fail
 
+## How it works
+
+`_start` is compiled WebAssembly: it first `call`s `path_open` (preopen fd `3` = current directory) to obtain a real `fd` for `hello.wasm` and store it in linear memory, then `fd_read`’s up to 192 bytes into a fixed buffer. The rest of the body is a straight-line sequence of five `i32.load` / `i32.const` / `i32.ne` / `if` … `call proc_exit(1)` … `end` checks for magic, version, and three 32-bit slices of the greeting. If every comparison is false (values match), control falls off the end of `_start` with exit status `0`. Operationally it is the same stack machine as **`hello.wasm`**: push addresses and expected words, compare, and **branch to `proc_exit(1)`** on inequality; see the `_start` opcode walk-through in `hello.wasm.md` for the base mnemonics (`i32.const`, `i32.load`, `call`, etc.).
+
 ## Usage
 
 Because the test opens `hello.wasm` as a file, the current directory must be

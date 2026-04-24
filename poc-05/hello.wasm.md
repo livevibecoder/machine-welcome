@@ -10,6 +10,10 @@ Hello, wasm!
 This is the repo's first non-ELF target: still machine code only, but now in
 the WebAssembly binary format instead of ELF.
 
+## How it works
+
+The module is a static WASI command: it exports one page of **memory** and an exported function **`_start`**. The code section pushes four `i32` operands (stdout `fd`, pointer to a single `iovec` in linear memory, `iovs` count `1`, and a scratch pointer for the byte count), then `call`’s the imported `fd_write`. On success, `fd_write` returns `0`; `drop` discards that `i32` and the function `end`’s, which exits normally. The data segment at file offset `122` contains the `Hello, wasm!\n` bytes; `fd_write` copies from that `iovec` to the host. There are no local variables and no control flow other than the single import call.
+
 ## Runtime
 
 Verified with:

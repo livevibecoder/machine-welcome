@@ -101,6 +101,20 @@ Raw bytes:
 73 00 00 00
 ```
 
+**Flat listing (hex + mnemonic):**
+
+```text
+13 05 10 00   addi  a0, zero, 1          ; stdout fd
+97 05 00 00   auipc a1, 0
+93 85 05 02   addi  a1, a1, 32           ; &msg (PC-relative)
+13 06 d0 00   addi  a2, zero, 13        ; length
+93 08 00 04   addi  a7, zero, 64        ; __NR_write
+73 00 00 00   ecall
+13 05 00 00   addi  a0, zero, 0         ; status 0
+93 08 d0 05   addi  a7, zero, 93        ; __NR_exit
+73 00 00 00   ecall
+```
+
 ### Instruction-by-instruction
 
 #### 1. `13 05 10 00` — `addi a0, zero, 1`

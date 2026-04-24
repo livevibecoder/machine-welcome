@@ -86,6 +86,8 @@ exit(0)
 fail: exit(1)
 ```
 
+**How the Linux test maps to instructions:** the verifier uses the usual `open(2)` / `read(2)` prologue, then a chain of `cmp` against absolute addresses in the mapped buffer and two `repe cmpsb` memcmp-style checks (greeting, DLL name). Any mismatch jumps to a shared fail epilogue; success falls through to `exit(0)`. Blocks below name each **Intel** mnemonic sequence in file order.
+
 ## Code walkthrough
 
 ### Block 1 — open sibling PE

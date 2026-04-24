@@ -92,6 +92,8 @@ Together the last two checks verify:
 Hello, android!\n
 ```
 
+**Control flow:** same AArch64 “openat → read(192) @ 0x401000 → constant loads + `cmp` + `b.ne fail`” shape as `poc-06/test-hello`, but the checks add **`ET_DYN`** at ELF header halfword `0x10` and split the 16-byte greeting into two 8-byte compares at offsets `152` and `160`. The fail and success epilogues are `mov x0, {0|1}` / `mov x8, #93` / `svc #0` (`exit`).
+
 ## Instruction walk-through
 
 The code begins at `0x400078`.

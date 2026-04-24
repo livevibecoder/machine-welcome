@@ -103,6 +103,19 @@ a8 0b 80 d2
 
 That is exactly 8 AArch64 instructions.
 
+**Flat listing (hex + mnemonic):**
+
+```text
+01 01 00 10   adr   x1, msg
+20 00 80 d2   mov   x0, #1
+c2 01 80 d2   mov   x2, #14
+08 08 80 d2   mov   x8, #64
+01 00 00 d4   svc   #0                    ; write(1, msg, 14)
+00 00 80 d2   mov   x0, #0
+a8 0b 80 d2   mov   x8, #93
+01 00 00 d4   svc   #0                    ; exit(0)
+```
+
 ### Instruction-by-instruction
 
 #### 1. `01 01 00 10` — `adr x1, msg`
