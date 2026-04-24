@@ -1,0 +1,50 @@
+# Browser-Hosted WebAssembly Plan
+
+This file covers:
+
+- `notes-web.wasm`
+
+under the approved policy that browser host glue may remain external to the
+committed repo artifacts.
+
+## Goal
+
+Provide the same core notes behavior in a browser-hosted environment:
+
+- editor pane
+- note list pane
+- pointer selection
+- keyboard editing
+- save current note
+
+## Starting point
+
+The current Wasm precedent is the WASI hello module in
+[`../poc-05/hello.wasm.md`](../poc-05/hello.wasm.md). That proves a Wasm binary
+target, but not a browser GUI contract.
+
+## Product policy for web
+
+The committed in-repo deliverable stays:
+
+- a Wasm binary
+- a machine-code test
+- matching Markdown documentation
+
+The browser bootstrap layer can remain external host glue, because the user
+explicitly approved that policy while planning.
+
+## Required behavior contract
+
+The web implementation should expose host-call or import boundaries for:
+
+- rendering the two-pane note UI
+- list hit-testing
+- keyboard text entry
+- browser-side persistence
+
+## Storage
+
+The logical note format should still match the shared product contract, even if
+the browser host persists the bytes via IndexedDB, local storage, or a custom
+host bridge.

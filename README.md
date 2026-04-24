@@ -116,6 +116,7 @@ and target `clang`.
 | --- | --- |
 | `poc-01`, `poc-03`, Linux-hosted `poc-08/test-hello`, `poc-11/test-hello-*` | Normal x86_64 Linux system; no extra runtime beyond the base OS. |
 | `poc-02`, `poc-04` | Live X11 session with matching X server socket and Xauthority details. |
+| `product-notes/notes-linux-x86_64` | Live X11 session with matching X server socket and Xauthority details. |
 | `poc-05` | `wasmtime`. |
 | `poc-06`, `poc-07`, `poc-09` | `qemu-user-static`. |
 | `poc-08/hello.exe` | Windows loader, typically `wine64` on Linux. |
@@ -124,6 +125,12 @@ and target `clang`.
 
 No compiler, assembler, linker, or interpreter is required to *use* the
 committed artifacts in this repo.
+
+## Products
+
+| Product | Status | Platforms | Docs |
+| --- | --- | --- | --- |
+| `product-notes` | First committed product reference build present. | Linux x86_64 binary now; Linux ARM64, Windows, Android/iOS, macOS, and browser-hosted Wasm implementation notes are in place. | [`product-notes/README.md`](product-notes/README.md), [`product-notes/product-contract.md`](product-notes/product-contract.md) |
 
 ## Proofs of concept
 
