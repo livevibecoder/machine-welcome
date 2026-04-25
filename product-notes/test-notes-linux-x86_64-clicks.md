@@ -7,8 +7,9 @@ logic that was changed while adding per-row delete buttons.
 
 Terminology (*slot*, *NOTE_COUNT*, hit-test, …): [product notes glossary](glossary.md) (e.g. [ImageText8](glossary.md#imagetext8)).
 
-Unlike `test-notes-linux-x86_64`, which only checks the visible product strings,
-this verifier checks the byte ranges that anchor the current click behavior.
+Unlike `test-notes-linux-x86_64`, which checks the visible product strings,
+colour constants, printable keymap, and border entry point, this verifier checks
+the byte ranges that anchor the current click behavior.
 
 ## Checked ranges
 

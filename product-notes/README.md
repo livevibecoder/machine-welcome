@@ -36,6 +36,8 @@ Linux x86_64:
 - a right-side alphabetical list derived from the first words of stored notes
 - mouse clicks on the right-side list load a note into the left pane
 - each visible right-pane row also shows a `Del` affordance on its far right
+- normal printable ASCII input, including shifted uppercase letters and symbols
+- a dark window background with light text and simple pane borders
 
 The current Linux build keeps the existing tiny record format inherited from
 the repo's earlier note tools. Clicking a note loads it for amendment,

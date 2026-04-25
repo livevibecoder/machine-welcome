@@ -1,51 +1,49 @@
 # `product-notes/test-notes-linux-x86_64`
 
-`test-notes-linux-x86_64` is a **379-byte** statically-linked Linux ELF64
+`test-notes-linux-x86_64` is a **452-byte** statically-linked Linux ELF64
 x86_64 binary. It is a headless structural verifier for the Linux product
 reference build `./notes-linux-x86_64`.
 
 Terminology for [BSS](glossary.md#bss), syscalls, and similar implementation
 phrases: [product notes glossary](glossary.md).
 
-It checks three anchored byte ranges:
+It checks eight anchored byte ranges:
 
 1. window title `notes-x64` at file offset `0x784`
 2. left-pane label `Note:` at file offset `0x824`
 3. right-pane header `Words` at file offset `0x870`
+4. dark `CreateWindow` background pixel at `0x764`
+5. light-on-dark `CreateGC` foreground/background pixels at `0x7b4`
+6. expanded printable keymap row at `0x83e`
+7. border helper call at `0x549`
+8. border helper prefix at `0x92a`
 
 Exit status:
 
 - `0` = pass
 - `1` = fail
 
-Verified behavior:
-
-- it exits `0` on the committed binary
-- corrupting byte `0x784` makes it exit `1`
-- restoring the original byte returns it to `0`
-
 ## Why this test is structural
 
 The target is a GUI program tied to the live X11 session cookie and socket, so a
 small structural verifier is the safest always-runnable regression check on the
-Linux host. It proves that the patched product-specific strings and therefore
-the redirected build are present in the expected file layout.
+Linux host. It proves that the visible product strings, colour constants,
+printable keymap expansion, and border drawing entry point are present in the
+expected file layout.
 
 ## File layout
 
-`mkelf` wraps a `259`-byte body:
+`mkelf` wraps a `332`-byte body:
 
 ```text
 0x000..0x077   120   ELF header + PT_LOAD program header
-0x078..0x0dc   101   open + three pread64 blocks + compares
-0x0dd..0x0e8    12   success / fail exits
-0x0e9..0x0fb    19   path string "notes-linux-x86_64\0"
-0x0fc..0x104     9   expected title
-0x105..0x109     5   expected left-pane label
-0x10a..0x10e     5   expected right-pane header
+0x078..0x0fc   133   open + descriptor-driven pread64/compare loop + exits
+0x0fd..0x10f    19   path string "notes-linux-x86_64\0"
+0x110..0x16f    96   eight 12-byte check descriptors
+0x170..0x1c3    84   expected byte ranges
 ```
 
-Total file size: `379` bytes.
+Total file size: `452` bytes.
 
 ## Overall logic
 
@@ -54,256 +52,82 @@ Pseudocode:
 ```text
 fd = open("notes-linux-x86_64", O_RDONLY)
 
-pread64(fd, buf, 9, 0x784)
-memcmp(buf, "notes-x64", 9)
-
-pread64(fd, buf, 5, 0x824)
-memcmp(buf, "Note:", 5)
-
-pread64(fd, buf, 5, 0x870)
-memcmp(buf, "Words", 5)
+for each descriptor:
+    pread64(fd, buf, descriptor.length, descriptor.offset)
+    memcmp(buf, descriptor.expected, descriptor.length)
 
 exit(0) on success, else exit(1)
 ```
 
-## Code walk-through
-
-### Block 1 — open sibling binary
+Each descriptor is:
 
 ```text
-; --- Open ./notes-linux-x86_64 read-only; keep fd in RBX for pread64 ---
-; Glossary: [mkelf](glossary.md#mkelf), [anchored structural test](glossary.md#anchored-structural-test), [syscalls](glossary.md#linux-syscalls-x86-64-syscall).
-400078: b8 02 00 00 00                mov     eax, 0x2
-40007d: bf 55 01 40 00                mov     edi, 0x400155
-400082: 31 f6                         xor     esi, esi
+u32 file_offset
+u32 byte_count
+u32 expected_bytes_virtual_address
+```
+
+## Code walk-through
+
+The ELF has no section table, so the listing below is from `objdump` on the raw
+load segment. Addresses are the runtime virtual addresses after `mkelf`'s
+fixed `0x400078` entry point.
+
+```text
+400078: b8 02 00 00 00                mov     eax, 0x2          ; __NR_open
+40007d: bf fd 00 40 00                mov     edi, 0x4000fd     ; path
+400082: 31 f6                         xor     esi, esi          ; O_RDONLY
 400084: 31 d2                         xor     edx, edx
 400086: 0f 05                         syscall
 400088: 48 85 c0                      test    rax, rax
-40008b: 0f 88 b8 00 00 00             js      fail
-400091: 48 89 c3                      mov     rbx, rax
+40008b: 0f 88 60 00 00 00             js      0x4000f1          ; fail
+400091: 48 89 c3                      mov     rbx, rax          ; fd
+400094: 41 bc 10 01 40 00             mov     r12d, 0x400110    ; descriptors
+40009a: 41 bd 08 00 00 00             mov     r13d, 0x8         ; count
+
+4000a0: b8 11 00 00 00                mov     eax, 0x11         ; __NR_pread64
+4000a5: 48 89 df                      mov     rdi, rbx
+4000a8: be 00 10 40 00                mov     esi, 0x401000     ; scratch buffer
+4000ad: 41 8b 54 24 04                mov     edx, [r12+4]      ; length
+4000b2: 45 8b 14 24                   mov     r10d, [r12]       ; file offset
+4000b6: 0f 05                         syscall
+4000b8: 41 3b 44 24 04                cmp     eax, [r12+4]
+4000bd: 0f 85 2e 00 00 00             jne     0x4000f1
+4000c3: be 00 10 40 00                mov     esi, 0x401000
+4000c8: 41 8b 7c 24 08                mov     edi, [r12+8]      ; expected bytes
+4000cd: 41 8b 4c 24 04                mov     ecx, [r12+4]
+4000d2: fc                            cld
+4000d3: f3 a6                         repe    cmpsb
+4000d5: 0f 85 16 00 00 00             jne     0x4000f1
+4000db: 49 83 c4 0c                   add     r12, 0xc          ; next descriptor
+4000df: 41 ff cd                      dec     r13d
+4000e2: 0f 85 b8 ff ff ff             jne     0x4000a0
+
+4000e8: b8 3c 00 00 00                mov     eax, 0x3c         ; exit(0)
+4000ed: 31 ff                         xor     edi, edi
+4000ef: 0f 05                         syscall
+4000f1: b8 3c 00 00 00                mov     eax, 0x3c         ; exit(1)
+4000f6: bf 01 00 00 00                mov     edi, 0x1
+4000fb: 0f 05                         syscall
 ```
 
-(Equivalent `xxd` / commented form in older revisions:)
+## Checked Descriptors
 
 ```text
-b8 02 00 00 00       mov eax, 2
-bf 55 01 40 00       mov edi, 0x400155
-31 f6                xor esi, esi
-31 d2                xor edx, edx
-0f 05                syscall
-48 85 c0             test rax, rax
-0f 88 b8 00 00 00    js fail
-48 89 c3             mov rbx, rax
+0x784 len 0x09 -> notes-x64
+0x824 len 0x05 -> Note:
+0x870 len 0x05 -> Words
+0x764 len 0x04 -> 20 20 20 00
+0x7b4 len 0x08 -> e0 e0 e0 00 20 20 20 00
+0x83e len 0x20 -> 2d 3d 08 00 71 77 65 72 74 79 75 69 6f 70 5b 5d
+                  0a 00 61 73 64 66 67 68 6a 6b 6c 3b 27 60 00 5c
+0x549 len 0x05 -> e8 dc 03 00 00
+0x92a len 0x10 -> 8b 04 25 d8 07 40 00 89 04 25 30 0a 40 00 8b 04
 ```
 
-**Execution logic:** this is the standard static `open` setup: `eax=2` selects
-`__NR_open`, `edi` points at the first byte of the embedded path, `esi=0` and
-`edx=0` request read-only open with no extra flags, and the syscall is invoked
-with `syscall`. A negative return is treated as failure via `js` to the
-non-zero exit. On success, the fd in `rax` is copied to `rbx` so later syscalls
-can keep the same fd value while `pread64` repurpose `rax` for syscall numbers.
+## Embedded path
 
-This opens:
-
-```text
-notes-linux-x86_64
-```
-
-and keeps the file descriptor in `rbx`.
-
-### Block 2 — verify title at `0x784`
-
-```text
-; --- Pread 9 bytes at 0x784; compare to embedded "notes-x64" (ChangeProperty title) ---
-; [pread64](glossary.md#pread64), [ImageText8 / WM_NAME](glossary.md#changeproperty-and-wm_name) context in glossary.
-400094: b8 11 00 00 00                mov     eax, 0x11
-400099: 48 89 df                      mov     rdi, rbx
-40009c: be 00 10 40 00                mov     esi, 0x401000
-4000a1: ba 09 00 00 00                mov     edx, 0x9
-4000a6: 41 ba 84 07 00 00             mov     r10d, 0x784
-4000ac: 0f 05                         syscall
-4000ae: 48 83 f8 09                   cmp     rax, 0x9
-4000b2: 0f 85 91 00 00 00             jne     fail
-```
-
-(Commented mnemonic-only view:)
-
-```text
-b8 11 00 00 00       mov eax, 17
-48 89 df             mov rdi, rbx
-be 00 10 40 00       mov esi, 0x401000
-ba 09 00 00 00       mov edx, 9
-41 ba 84 07 00 00    mov r10d, 0x784
-0f 05                syscall
-48 83 f8 09          cmp rax, 9
-0f 85 91 00 00 00    jne fail
-```
-
-**Execution logic:** this is a fixed-offset `pread64`: set `__NR_pread64` in
-`eax`, set `rdi` to the open fd, set `esi` to a scratch buffer, `edx` to the
-read length, and set `r10d` to the in-file offset (here `0x784`). The syscall
-returns the number of bytes read in `rax`; compare that to the requested
-length, and if they differ, jump to the failure exit so a truncated or error
-read cannot pass as a match.
-
-Linux syscall `17` is `pread64`. This reads the 9-byte title payload into the
-BSS buffer at `0x401000`.
-
-The compare block that follows is:
-
-```text
-4000b8: be 00 10 40 00                mov     esi, 0x401000
-4000bd: bf 68 01 40 00                mov     edi, 0x400168
-4000c2: b9 09 00 00 00                mov     ecx, 0x9
-4000c7: fc                            cld
-4000c8: f3 a6                         repz cmpsb
-4000ca: 0f 85 79 00 00 00             jne     fail
-```
-
-```text
-be 00 10 40 00       mov esi, 0x401000
-bf 68 01 40 00       mov edi, 0x400168
-b9 09 00 00 00       mov ecx, 9
-fc                   cld
-f3 a6                repe cmpsb
-0f 85 79 00 00 00    jne fail
-```
-
-**Execution logic:** `esi` is the just-read data in BSS, `edi` is the
-immutable expected string embedded in the test binary, `ecx` is the compare
-count, and `cld` ensures string instructions move upward in memory. `repe
-cmpsb` compares the buffers while equal and decrements `ecx` each step; it stops
-on the first mismatch, leaving a mismatching pair or exhausting `ecx`. A
-mismatch (or the flags state after the repeat) is followed by a branch on `jne`
-to the failure path.
-
-So it compares against:
-
-```text
-notes-x64
-```
-
-### Block 3 — verify `Note:` at `0x824`
-
-**Execution logic:** this repeats the `pread64` + `repe cmpsb` pattern with a new
-`r10` offset and new expected string pointer, but the control flow is the same
-as in Block 2: read exactly the requested number of bytes, then compare
-memory-to-memory with `DF=0`.
-
-**Disassembly (`0x4000d0`–`0x400106`, fall-through of prior blocks; failure
-targets the shared `fail` entry at `0x400149`):**
-
-```text
-4000d0: b8 11 00 00 00                mov     eax, 0x11
-4000d5: 48 89 df                      mov     rdi, rbx
-4000d8: be 00 10 40 00                mov     esi, 0x401000
-4000dd: ba 05 00 00 00                mov     edx, 0x5
-4000e2: 41 ba 24 08 00 00             mov     r10d, 0x824
-4000e8: 0f 05                         syscall
-4000ea: 48 83 f8 05                   cmp     rax, 0x5
-4000ee: 0f 85 55 00 00 00             jne     0x400149
-4000f4: be 00 10 40 00                mov     esi, 0x401000
-4000f9: bf 71 01 40 00                mov     edi, 0x400171
-4000fe: b9 05 00 00 00                mov     ecx, 0x5
-400103: fc                            cld
-400104: f3 a6                         repz cmpsb
-400106: 0f 85 3d 00 00 00             jne     0x400149
-```
-
-The second pread64 block is identical in shape but uses:
-
-- length `5`
-- file offset `0x824`
-
-and then compares against the 5-byte literal:
-
-```text
-Note:
-```
-
-### Block 4 — verify `Words` at `0x870`
-
-**Execution logic:** same as Block 3, only the offset and the embedded expected
-string differ.
-
-**Disassembly (`0x40010c`–`0x40013e`, shared `fail` at `0x400149`):**
-
-```text
-40010c: b8 11 00 00 00                mov     eax, 0x11
-400111: 48 89 df                      mov     rdi, rbx
-400114: be 00 10 40 00                mov     esi, 0x401000
-400119: ba 05 00 00 00                mov     edx, 0x5
-40011e: 41 ba 70 08 00 00             mov     r10d, 0x870
-400124: 0f 05                         syscall
-400126: 48 83 f8 05                   cmp     rax, 0x5
-40012a: 75 1d                         jne     0x400149
-40012c: be 00 10 40 00                mov     esi, 0x401000
-400131: bf 76 01 40 00                mov     edi, 0x400176
-400136: b9 05 00 00 00                mov     ecx, 0x5
-40013b: fc                            cld
-40013c: f3 a6                         repz cmpsb
-40013e: 75 09                         jne     0x400149
-```
-
-The third pread64 block again uses length `5`, now at file offset `0x870`, and
-compares against:
-
-```text
-Words
-```
-
-### Block 5 — success / fail exits
-
-This ELF has no section table; the listing below is from `objdump` on the
-code slice starting at the entry `0x400078` (same raw bytes as the product
-binary layout).
-
-Success:
-
-```text
-400140: b8 3c 00 00 00                mov     eax, 0x3c
-400145: 31 ff                         xor     edi, edi
-400147: 0f 05                         syscall
-```
-
-(Short form:)
-
-```text
-b8 3c 00 00 00
-31 ff
-0f 05
-```
-
-**Execution logic:** set `__NR_exit`, pass exit status `0` in `edi` via
-`xor edi, edi`, and trap into the kernel.
-
-Fail (single shared label; all failure branches land here first):
-
-```text
-400149: b8 3c 00 00 00                mov     eax, 0x3c
-40014e: bf 01 00 00 00                mov     edi, 0x1
-400153: 0f 05                         syscall
-```
-
-(Short form:)
-
-```text
-b8 3c 00 00 00
-bf 01 00 00 00
-0f 05
-```
-
-**Execution logic:** set `__NR_exit`, pass exit status `1` in `edi`, and invoke
-`syscall` so the shell can distinguish failure with `$?`.
-
-Linux syscall `60` is `exit`.
-
-## Embedded literals
-
-The hex blocks in this section are **read-only data** that happen to be in the
-same segment as the code; the test program never jumps into these bytes.
-
-### Path at `0x400155`
+At `0x4000fd`:
 
 ```text
 6e 6f 74 65 73 2d 6c 69 6e 75 78 2d 78 38 36 5f 36 34 00
@@ -314,14 +138,6 @@ ASCII:
 ```text
 notes-linux-x86_64
 ```
-
-### Expected strings
-
-At:
-
-- `0x400168` — `notes-x64`
-- `0x400171` — `Note:`
-- `0x400176` — `Words`
 
 ## Syscalls used
 
@@ -334,8 +150,8 @@ Exactly three Linux x86_64 syscalls:
 ## What this test proves
 
 It proves that the committed Linux product reference binary still contains the
-product-specific title and pane-label patches at the expected anchored file
-offsets.
+product-specific title, pane labels, colour constants, printable keymap
+expansion, and border-helper entry bytes at the expected anchored offsets.
 
 It does **not** prove full GUI runtime behavior. That behavior depends on a live
 X11 session whose cookie and socket details match the binary's baked data.

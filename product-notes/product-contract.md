@@ -37,6 +37,10 @@ GUI stack physically allows:
 4. Selecting or clicking a note in the list loads the full note text into the
    editor pane.
 5. Pressing `Enter` stores the current editor contents as a note.
+6. The editor accepts normal printable ASCII characters, including uppercase
+   letters where the platform keyboard state exposes a Shift modifier.
+7. The note and list panes should be visually separated with simple borders and
+   readable foreground/background colours.
 
 ## Product v1 save semantics
 

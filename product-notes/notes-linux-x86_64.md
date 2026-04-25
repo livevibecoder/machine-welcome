@@ -1,12 +1,12 @@
 # `product-notes/notes-linux-x86_64`
 
-`notes-linux-x86_64` is a **2346-byte** statically-linked Linux ELF64 x86_64
+`notes-linux-x86_64` is a **2632-byte** statically-linked Linux ELF64 x86_64
 binary. It is the first product-oriented note tool in the repo and is derived
 directly from the earlier raw-X11 editor documented in
 [`../poc-04/note-edit.md`](../poc-04/note-edit.md).
 
-The file keeps the same overall container size and most of the same machine
-code, but patches the title, labels, draw path, and event dispatch so the UI
+The file keeps most of the same machine code, but appends a small border /
+Shift-key helper region and patches the title, labels, draw path, and event dispatch so the UI
 behaves like a two-pane note tool:
 
 - left side: full note editor
@@ -15,6 +15,8 @@ behaves like a two-pane note tool:
 - click the per-row `Del` affordance at the far right: remove that row and
   rewrite `notes.db` so the deletion persists
 - `Enter`: save the current editor contents as a note record
+- normal printable ASCII keys, including shifted uppercase letters and symbols
+- dark background, light text, and simple pane borders
 
 ## Terminology
 
@@ -36,7 +38,7 @@ Large parts of the binary are intentionally unchanged from `poc-04/note-edit`:
 - X11 setup handshake and resource-id patching
 - hard-coded X socket / cookie / root window coupling
 - note loader and insertion sort
-- key handling table and input buffer limits
+- input buffer limits and the save/backspace paths
 - helper routines `fill_it8_spaces`, `send_it8`, and `exit_app`
 
 For those unchanged regions, the canonical byte-level explanation is still
@@ -140,10 +142,51 @@ Del
 The draw helper copies these three bytes into the [`ImageText8`](glossary.md#imagetext8) payload when it
 renders the per-row delete affordance near the right edge of the list pane.
 
+### Colour and border constants
+
+The `CreateWindow` template now uses a 2-pixel border width and a dark
+background pixel:
+
+```text
+0x758: 02 00
+0x764: 20 20 20 00
+```
+
+The `CreateGC` value list now uses light foreground text/border colour and the
+same dark background:
+
+```text
+0x7b4: e0 e0 e0 00 20 20 20 00
+```
+
+### Expanded printable keymap
+
+The unshifted X keycode table still starts at `0x82a`. The printable row range
+from file offset `0x83e` now includes `=`, `[`, `]`, `;`, backtick, and
+backslash in addition to the earlier letters, digits, space, and punctuation:
+
+```text
+2d 3d 08 00 71 77 65 72 74 79 75 69 6f 70 5b 5d
+0a 00 61 73 64 66 67 68 6a 6b 6c 3b 27 60 00 5c
+```
+
 ## Control-flow patches
 
-Three old control-flow sites were redirected into new code stored in the
-zero-filled gap between the original code and data sections.
+Five old control-flow sites now redirect into product-specific code stored in
+the old padding gap or the appended end of the load image.
+
+### Key handler redirect at `0x1de`
+
+The old first key-translation instruction is replaced with:
+
+```text
+e9 80 07 00 00 90 90 90
+```
+
+**Execution logic:** `RIP_after = 0x4001e3`, displacement `0x780`, target
+`0x400963`. The three `90` bytes are inert padding over the rest of the old
+8-byte instruction. The new target performs Shift-aware printable translation,
+then jumps back to the old append / save / backspace paths.
 
 ### Startup redirect at `0x1d9`
 
@@ -200,7 +243,20 @@ chosen so the next instruction decoded is the first byte of the new code
 region; no registers are set by the jump itself, so the new entry code must
 establish its own register conventions.
 
-## New code regions: `0x539..0x6e6` and `0x893..0x90d`
+### Border draw call at `0x549`
+
+The first `call fill_it8` in the product draw routine is replaced with:
+
+```text
+e8 dc 03 00 00
+```
+
+**Execution logic:** `RIP_after = 0x40054e`, displacement `0x3dc`, target
+`0x40092a`. The appended helper draws the pane borders, calls the original
+`fill_it8`, and returns to `0x40054e`, so the rest of the two-pane text draw
+routine continues unchanged.
+
+## New code regions: `0x539..0x6e6`, `0x893..0x90d`, and `0x92a..0xa47`
 
 The old binary had a long zero padding region between the code and fixed data
 base, plus another unused zero pocket near the later data area.
@@ -217,6 +273,10 @@ section.
 | `0x646..0x6c9` | row draw helper plus click hit-testing / row action logic |
 | `0x6ca..0x6e6` | tail clear helper for unused right-pane rows |
 | `0x893..0x90d` | persistent delete rewrite helper |
+| `0x92a..0x962` | border draw helper |
+| `0x963..0x9ab` | Shift-aware key handler |
+| `0x9ac..0xa2b` | 128-byte Shift translation table |
+| `0xa2c..0xa47` | `PolyRectangle` border request template |
 
 ## Instruction-level logic for executable sequences
 
@@ -224,6 +284,74 @@ The sections below are the running instruction sequences that implement the
 product behavior, as they appear in the current binary. Fixed strings above are
 **data** embedded in the image; they are not a control-flow path unless
 copied/used by the instructions below.
+
+### Border draw helper (`0x40092a`)
+
+The helper copies the already-patched drawable and GC IDs from the `ImageText8`
+template into a `PolyRectangle` request at `0x400a2c`, sends the request, then
+calls the original `fill_it8` helper so the existing draw routine sees the same
+blank text buffer it expected before the border call was inserted.
+
+```text
+40092a: 8b 04 25 d8 07 40 00          mov     eax, [0x4007d8]         ; drawable from IT8
+400931: 89 04 25 30 0a 40 00          mov     [0x400a30], eax         ; rectangle drawable
+400938: 8b 04 25 dc 07 40 00          mov     eax, [0x4007dc]         ; GC from IT8
+40093f: 89 04 25 34 0a 40 00          mov     [0x400a34], eax         ; rectangle GC
+400946: 45 31 d2                      xor     r10d, r10d              ; sendto flags = 0
+400949: b8 2c 00 00 00                mov     eax, 0x2c               ; __NR_sendto
+40094e: 48 89 df                      mov     rdi, rbx                ; X socket
+400951: be 2c 0a 40 00                mov     esi, 0x400a2c           ; PolyRectangle request
+400956: ba 1c 00 00 00                mov     edx, 0x1c               ; 28 bytes
+40095b: 0f 05                         syscall
+40095d: e8 93 fb ff ff                call    0x4004f5                ; original fill_it8
+400962: c3                            ret
+```
+
+The rectangle request itself is:
+
+```text
+400a2c: 43 00 07 00                   PolyRectangle, length 7
+400a30: 00 00 00 00                   drawable, patched at runtime
+400a34: 00 00 00 00                   GC, patched at runtime
+400a38: 08 00 14 00 4a 01 34 00       left pane rectangle: x=8 y=20 w=330 h=52
+400a40: 5e 01 14 00 ee 00 5e 01       right pane rectangle: x=350 y=20 w=238 h=350
+```
+
+### Shift-aware key handler (`0x400963`)
+
+The old key handler indexed one baked table and therefore could not distinguish
+Shift from unshifted key presses. The new entry keeps the old special-key
+targets, tests the X11 event-state Shift bit at `EVENT_BUF+28`, and maps the
+unshifted ASCII byte through the 128-byte table at `0x4009ac` before rejoining
+the old append path.
+
+```text
+400963: 0f b6 04 25 01 40 40 00       movzx   eax, byte [0x404001]    ; X keycode
+40096b: 0f b6 80 2a 08 40 00          movzx   eax, byte [rax+0x40082a]; unshifted byte
+400972: 84 c0                         test    al, al
+400974: 0f 84 3a fb ff ff             je      0x4004b4                ; unmapped: ignore
+40097a: 3c 1b                         cmp     al, 0x1b
+40097c: 0f 84 a4 fb ff ff             je      0x400526                ; Escape
+400982: 3c 08                         cmp     al, 0x08
+400984: 0f 84 aa f8 ff ff             je      0x400234                ; Backspace
+40098a: 3c 0a                         cmp     al, 0x0a
+40098c: 0f 84 bf f8 ff ff             je      0x400251                ; Enter
+400992: f6 04 25 1c 40 40 00 01       test    byte [0x40401c], 0x01   ; ShiftMask
+40099a: 0f 84 6d f8 ff ff             je      0x40020d                ; unshifted append
+4009a0: 0f b6 80 ac 09 40 00          movzx   eax, byte [rax+0x4009ac]; shifted ASCII
+4009a7: e9 61 f8 ff ff                jmp     0x40020d                ; old append path
+```
+
+The Shift table is an ASCII-indexed byte table. Most entries are identity
+mappings; the printable entries encode digits to symbols, punctuation pairs,
+and `a`..`z` to `A`..`Z`:
+
+```text
+000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
+202122232425262228292a2b3c5f3e3f2921402324255e262a283a3a3c2b3e3f
+404142434445464748494a4b4c4d4e4f505152535455565758595a7b7c7d5e5f
+7e4142434445464748494a4b4c4d4e4f505152535455565758595a7b7c7d7e7f
+```
 
 ### `fill_it8` and `send_it8` helpers (reused, `0x4f5` / `0x505`)
 
@@ -306,7 +434,8 @@ row”.
 Opcode sequence (virtual `0x400549` upward; calls abbreviated as the helper
 prologue/epilogue you get from a `call`):
 
-- `call fill_it8` then `mov [0x4007e0], 0x10` and `rep movs` 5 bytes from
+- `call border_draw` (which finishes by calling `fill_it8`) then
+  `mov [0x4007e0], 0x10` and `rep movs` 5 bytes from
   `0x400824` (`"Note:"`) into the IT8 string buffer, then set `r14d=0x1e` and
   `call send_it8` to paint the left header at `y=30`.
 - `call fill_it8` again, set `x=0x10`, `rep movs` the live editor from
@@ -338,7 +467,7 @@ prologue/epilogue you get from a `call`):
 ;   list (micro-loop 0x400605..0x40060b); (4) fixed row pitch 16px so hit-testing
 ;   in the click handler can use the same geometry.
 ; --- Sub-block: left chrome (labels “Note:” + current editor text) ---
-400549: e8 a7 ff ff ff                call    0x4004f5                 ; clear IT8 buffer
+400549: e8 dc 03 00 00                call    0x40092a                 ; draw borders, then clear IT8
 40054e: 66 c7 04 25 e0 07 40 00 10 00   mov     WORD [0x4007e0], 0x10
         ; 0x4007e0 = x in template; 0x10 = left column (product: note pane)
 400558: be 24 08 40 00                mov     esi, 0x400824          ; "Note:" source
@@ -756,7 +885,8 @@ product-specific slot now used:
 This first product reference binary is intentionally still constrained:
 
 - same hard-coded X11 session coupling as `poc-04`
-- same fixed keyboard map
+- keyboard input is still tied to one X11 keycode layout, but now covers normal
+  printable ASCII and shifted uppercase/symbols for that layout
 - same 63-character editor limit
 - same 20-note in-memory display cap
 - `Enter` still appends new records rather than rewriting the file
