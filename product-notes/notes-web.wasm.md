@@ -1,6 +1,6 @@
 # `product-notes/notes-web.wasm`
 
-`notes-web.wasm` is a **378-byte** browser-hosted WebAssembly MVP module for
+`notes-web.wasm` is a **379-byte** browser-hosted WebAssembly MVP module for
 the Notes product. Unlike the previous WASI marker, this module exposes an
 actual GUI-oriented host ABI:
 
@@ -14,7 +14,7 @@ The browser bootstrap remains external to the repo, per [`web-plan.md`](web-plan
 the committed deliverable is the `.wasm` binary, its binary test, and this
 byte-level documentation.
 
-## Host ABI
+## Custom host checklist
 
 The module imports five functions from import module `notes`:
 
@@ -39,7 +39,32 @@ The host should pass normal printable ASCII bytes to `key`, including uppercase
 letters and shifted symbols after browser keyboard translation. The module also
 handles `8` as Backspace and `13` as Enter.
 
-## How to run
+## How to run with the included local runner
+
+For this runner only, the repo contains a human-readable browser host:
+
+- [`notes-web-runner.html`](notes-web-runner.html)
+- [`run_notes.py`](run_notes.py)
+
+Run it from the repo root with:
+
+```bash
+python3 product-notes/run_notes.py
+```
+
+Then use the opened browser page:
+
+- type printable text in the canvas
+- `Backspace` edits
+- `Enter` saves to browser `localStorage`
+- click a saved first-word row in the right pane to load it back into the editor
+
+The runner serves `notes-web.wasm` over `http://127.0.0.1:8765/` so browser
+`fetch()` can instantiate the module. It implements the `notes` imports with a
+canvas drawing surface and persists saved notes under the
+`machine-welcome.notes-web.records` local-storage key.
+
+## Host ABI
 
 Because WebAssembly cannot access the browser DOM directly, run this module from
 an external browser host page or runner that implements the `notes` imports
@@ -54,9 +79,8 @@ above. The host page should:
 6. Forward key presses to exported `key(code)`.
 7. Forward pointer clicks to exported `click(x, y)`.
 
-No browser glue is committed here, because the repo rules allow the Wasm binary
-but do not allow adding human-readable JavaScript or HTML source as an
-implementation artifact.
+The included runner is one implementation of this host boundary. Other hosts
+can provide the same imports without changing the Wasm binary.
 
 ## Whole-file sections
 

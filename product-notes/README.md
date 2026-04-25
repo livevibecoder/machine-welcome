@@ -42,6 +42,7 @@ ASCII input, shifted uppercase/symbols, pane borders, and simple colours.
 | [`test-notes-android.md`](test-notes-android.md) | test doc | Android APK structural verifier |
 | [`notes-web.wasm.md`](notes-web.wasm.md) | binary doc | Browser-hosted WebAssembly Notes GUI module |
 | [`test-notes-web.md`](test-notes-web.md) | test doc | WebAssembly structural verifier |
+| [`notes-web-runner.html`](notes-web-runner.html), [`run_notes.py`](run_notes.py) | local runner | Browser host for running `notes-web.wasm` during this development pass |
 | [`linux-arm64-plan.md`](linux-arm64-plan.md) | platform plan | Linux ARM64 port plan |
 | [`windows-plan.md`](windows-plan.md) | platform plan | Windows x86_64 and ARM64 GUI plan |
 | [`mobile-plan.md`](mobile-plan.md) | platform plan | Android ARM64 and iOS ARM64 mobile GUI plan |

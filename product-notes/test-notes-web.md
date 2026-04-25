@@ -10,7 +10,7 @@ It checks six anchored byte ranges:
 - `0x084` length 13: export anchor for `init` and `key`
 - `0x159` length 5: `Note:`
 - `0x163` length 5: `Words`
-- `0x16d` length 13: `Notes Web GUI`
+- `0x16e` length 13: `Notes Web GUI`
 
 ## Code shape
 
