@@ -16,6 +16,8 @@ Provide the same core notes behavior in a browser-hosted environment:
 - pointer selection
 - keyboard editing
 - save current note
+- normal printable ASCII input, including uppercase letters and shifted symbols
+- simple pane borders with readable foreground/background colours
 
 ## Starting point
 
@@ -42,9 +44,19 @@ The web implementation should expose host-call or import boundaries for:
 - list hit-testing
 - keyboard text entry
 - browser-side persistence
+- border drawing / styling for the editor and list panes
+- foreground/background colour selection matching the product contrast policy
 
 ## Storage
 
 The logical note format should still match the shared product contract, even if
 the browser host persists the bytes via IndexedDB, local storage, or a custom
 host bridge.
+
+## Testing
+
+The Wasm verifier should structurally anchor:
+
+- exported/imported entry points used for rendering and keyboard input
+- printable ASCII input handling, including Shift-derived uppercase/symbols
+- border and colour constants exposed to or consumed by the host bridge

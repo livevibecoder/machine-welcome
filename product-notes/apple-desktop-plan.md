@@ -16,6 +16,8 @@ reference build:
 - right first-word list
 - click list item to load note
 - save current note with the product's shared semantics
+- normal printable ASCII input, including uppercase letters and shifted symbols
+- simple pane borders with readable foreground/background colours
 
 ## Starting point
 
@@ -34,6 +36,8 @@ AppKit product path.
 4. click handling and save behavior
 5. Apple-host runtime validation
 6. code-signing workflow suitable for local testing and eventual distribution
+7. keyboard handling that preserves the shared printable ASCII policy
+8. native border / colour setup for the editor and list panes
 
 ## Validation policy
 
@@ -43,3 +47,5 @@ container shape alone. It needs:
 - a runnable binary on Apple-host tooling or hardware
 - a matching test artifact
 - detailed interface documentation for any linked Apple frameworks
+- structural anchors for visible labels, printable input handling, colours, and
+  border drawing where host-side verification is practical

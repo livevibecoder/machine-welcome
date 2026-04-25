@@ -15,6 +15,9 @@ allowing a mobile-appropriate presentation:
 - tap to load note
 - save on the platform's equivalent primary action, with `Enter` behavior where
   physical or software keyboards make that natural
+- normal printable ASCII input when a keyboard is present, including uppercase
+  letters and shifted symbols
+- simple visual separation between editor and list, with readable colours
 
 ## Android ARM64
 
@@ -29,6 +32,9 @@ Required implementation work:
 3. provide list selection and note editing
 4. store notes in app-private storage using the same record framing
 5. preserve the same add/load/edit behavior as the Linux reference build
+6. support the shared printable ASCII editing policy for hardware and software
+   keyboard input
+7. draw or theme editor/list borders and foreground/background colours
 
 ## iOS ARM64
 
@@ -43,6 +49,8 @@ Required implementation work:
 3. note editing surface
 4. same note storage format
 5. Apple-host validation and signing during execution
+6. shared printable ASCII input behavior for hardware/software keyboards
+7. simple editor/list borders and readable foreground/background colours
 
 ## Mobile layout policy
 
@@ -55,5 +63,7 @@ available:
 - tap-to-load
 - edit
 - save
+- printable text input
+- visual borders or native separators between list and editor
 
 The behavior matters more than a strict desktop geometry clone.

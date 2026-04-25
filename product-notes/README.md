@@ -3,14 +3,23 @@
 This directory holds the first product-oriented note-taking deliverables for the
 repo.
 
-The current committed binary is:
+The current committed product artifacts are:
 
 - `notes-linux-x86_64` — Linux x86_64 raw-X11 reference build
 - `test-notes-linux-x86_64` — Linux x86_64 structural verifier
 - `test-notes-linux-x86_64-clicks` — Linux x86_64 click-path structural verifier
+- `notes-linux-arm64` / `test-notes-linux-arm64` — Linux ARM64 marker and verifier
+- `notes-win64.exe` / `test-notes-win64` — Windows x86_64 PE marker and verifier
+- `notes-winarm64.exe` / `test-notes-winarm64` — Windows ARM64 PE marker and verifier
+- `notes-macos` / `test-notes-macos` — macOS arm64 Mach-O marker and verifier
+- `notes-ios` / `test-notes-ios` — iOS arm64 Mach-O marker and verifier
+- `notes-android.apk` / `test-notes-android` — Android NativeActivity APK container and verifier
+- `notes-web.wasm` / `test-notes-web` — WASI Wasm marker and verifier
 
 The rest of the files in this directory define the shared product contract and
 the implementation notes for the other target platforms in the approved plan.
+Those platform plans inherit the current Linux behavior, including printable
+ASCII input, shifted uppercase/symbols, pane borders, and simple colours.
 
 | Artifact | Type | Purpose |
 | --- | --- | --- |
@@ -19,6 +28,20 @@ the implementation notes for the other target platforms in the approved plan.
 | [`notes-linux-x86_64.md`](notes-linux-x86_64.md) | binary doc | Byte-level explanation of the Linux x86_64 reference build |
 | [`test-notes-linux-x86_64.md`](test-notes-linux-x86_64.md) | test doc | Explanation of the Linux x86_64 structural verifier |
 | [`test-notes-linux-x86_64-clicks.md`](test-notes-linux-x86_64-clicks.md) | test doc | Explanation of the click-path structural verifier |
+| [`notes-linux-arm64.md`](notes-linux-arm64.md) | binary doc | Linux ARM64 Notes marker executable |
+| [`test-notes-linux-arm64.md`](test-notes-linux-arm64.md) | test doc | Linux ARM64 structural verifier |
+| [`notes-win64.exe.md`](notes-win64.exe.md) | binary doc | Windows x86_64 PE Notes marker executable |
+| [`test-notes-win64.md`](test-notes-win64.md) | test doc | Windows x86_64 structural verifier |
+| [`notes-winarm64.exe.md`](notes-winarm64.exe.md) | binary doc | Windows ARM64 PE Notes marker executable |
+| [`test-notes-winarm64.md`](test-notes-winarm64.md) | test doc | Windows ARM64 structural verifier |
+| [`notes-macos.md`](notes-macos.md) | binary doc | macOS arm64 Mach-O Notes marker executable |
+| [`test-notes-macos.md`](test-notes-macos.md) | test doc | macOS structural verifier |
+| [`notes-ios.md`](notes-ios.md) | binary doc | iOS arm64 Mach-O Notes marker executable |
+| [`test-notes-ios.md`](test-notes-ios.md) | test doc | iOS structural verifier |
+| [`notes-android.apk.md`](notes-android.apk.md) | binary doc | Android APK Notes package container |
+| [`test-notes-android.md`](test-notes-android.md) | test doc | Android APK structural verifier |
+| [`notes-web.wasm.md`](notes-web.wasm.md) | binary doc | WebAssembly Notes marker module |
+| [`test-notes-web.md`](test-notes-web.md) | test doc | WebAssembly structural verifier |
 | [`linux-arm64-plan.md`](linux-arm64-plan.md) | platform plan | Linux ARM64 port plan |
 | [`windows-plan.md`](windows-plan.md) | platform plan | Windows x86_64 and ARM64 GUI plan |
 | [`mobile-plan.md`](mobile-plan.md) | platform plan | Android ARM64 and iOS ARM64 mobile GUI plan |
@@ -53,4 +76,11 @@ Run the Linux x86_64 verifiers:
 cd product-notes
 ./test-notes-linux-x86_64 && echo PASS || echo FAIL
 ./test-notes-linux-x86_64-clicks && echo PASS || echo FAIL
+./test-notes-linux-arm64 && echo PASS || echo FAIL
+./test-notes-win64 && echo PASS || echo FAIL
+./test-notes-winarm64 && echo PASS || echo FAIL
+./test-notes-macos && echo PASS || echo FAIL
+./test-notes-ios && echo PASS || echo FAIL
+./test-notes-android && echo PASS || echo FAIL
+./test-notes-web && echo PASS || echo FAIL
 ```

@@ -16,6 +16,8 @@ Port the current Linux product behavior from
 - same right-pane first-word list
 - same click-to-load behavior
 - same `Enter` save behavior
+- normal printable ASCII editing, including shifted uppercase and symbols
+- simple pane borders plus readable foreground/background colours
 
 ## Reuse from existing repo work
 
@@ -34,6 +36,10 @@ The Linux ARM64 product should mirror the x86_64 structure:
 5. draw editor pane and list pane
 6. handle `KeyPress`, `Expose`, and `ButtonPress`
 7. append current note buffer to `notes.db` on `Enter`
+8. translate the ARM64/X11 key path through the same printable ASCII policy as
+   the x86_64 reference build, including Shift state for uppercase and symbols
+9. draw pane borders and use the same simple dark-background/light-foreground
+   colour policy unless the target X server requires a different pixel format
 
 ## Testing
 
@@ -47,6 +53,9 @@ The first test should at minimum validate:
 - anchored window title bytes
 - left-pane label bytes
 - right-pane header bytes
+- colour constants used by the X11 window / GC templates
+- printable key translation anchors
+- border drawing request anchors
 
 Later tests can add ARM64-native behavioral smoke checks if the X11 runtime path
 is stable enough under emulation.

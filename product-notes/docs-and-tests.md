@@ -30,6 +30,10 @@ Expected primary artifacts:
 - `notes-android.apk`
 - `notes-web.wasm`
 
+The non-x86_64 artifacts currently committed are initial marker/container
+executables with structural verifiers. Their platform plans remain the source of
+truth for the full native GUI work.
+
 ## Test patterns
 
 Use the repo's existing mixed strategy:
@@ -63,7 +67,10 @@ Each platform should eventually have a machine-code acceptance story covering:
 4. alter it in the editor
 5. save it
 6. relaunch and confirm persistence
+7. enter normal printable ASCII, including uppercase letters and shifted symbols
+8. verify pane borders and readable foreground/background colours are present
 
-The Linux x86_64 reference build currently has a structural verifier and the
-full product-specific byte-level doc set. It is the baseline for the remaining
-targets.
+The Linux x86_64 reference build currently has structural verifiers and the full
+product-specific byte-level doc set. It is the baseline for the remaining
+targets, including the printable-input, border, and colour anchors now checked
+by `test-notes-linux-x86_64`.
