@@ -9,7 +9,7 @@ The current committed product artifacts are:
 - `test-notes-linux-x86_64` — Linux x86_64 structural verifier
 - `test-notes-linux-x86_64-clicks` — Linux x86_64 click-path structural verifier
 - `notes-linux-arm64` / `test-notes-linux-arm64` — Linux ARM64 GUI scaffold and verifier
-- `notes-win64.exe` / `test-notes-win64` — Windows x86_64 GUI-subsystem scaffold and verifier
+- `notes-win64.exe` / `test-notes-win64` — Windows x86_64 two-pane Win32 GUI and verifier
 - `notes-winarm64.exe` / `test-notes-winarm64` — Windows ARM64 GUI-subsystem scaffold and verifier
 - `notes-macos` / `test-notes-macos` — macOS arm64 Mach-O GUI scaffold and verifier
 - `notes-ios` / `test-notes-ios` — iOS arm64 Mach-O GUI scaffold and verifier
@@ -30,7 +30,7 @@ ASCII input, shifted uppercase/symbols, pane borders, and simple colours.
 | [`test-notes-linux-x86_64-clicks.md`](test-notes-linux-x86_64-clicks.md) | test doc | Explanation of the click-path structural verifier |
 | [`notes-linux-arm64.md`](notes-linux-arm64.md) | binary doc | Linux ARM64 Notes GUI scaffold executable |
 | [`test-notes-linux-arm64.md`](test-notes-linux-arm64.md) | test doc | Linux ARM64 structural verifier |
-| [`notes-win64.exe.md`](notes-win64.exe.md) | binary doc | Windows x86_64 PE Notes GUI scaffold executable |
+| [`notes-win64.exe.md`](notes-win64.exe.md) | binary doc | Windows x86_64 PE Notes two-pane GUI executable |
 | [`test-notes-win64.md`](test-notes-win64.md) | test doc | Windows x86_64 structural verifier |
 | [`notes-winarm64.exe.md`](notes-winarm64.exe.md) | binary doc | Windows ARM64 PE Notes GUI scaffold executable |
 | [`test-notes-winarm64.md`](test-notes-winarm64.md) | test doc | Windows ARM64 structural verifier |

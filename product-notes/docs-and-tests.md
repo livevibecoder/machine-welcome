@@ -30,9 +30,11 @@ Expected primary artifacts:
 - `notes-android.apk`
 - `notes-web.wasm`
 
-The non-x86_64 artifacts currently committed are initial GUI scaffold/container
-executables with structural verifiers. Their platform plans remain the source of
-truth for the full interactive native GUI work.
+Most non-x86_64 artifacts currently committed are initial GUI scaffold/container
+executables with structural verifiers. `notes-win64.exe` is a runnable Win64 GUI
+PE that opens a native two-pane Notes window with an editable left pane, a
+right-hand list pane, and `Add`/`Delete` controls under Windows or Wine; richer
+interactive native GUI work remains tracked in the platform plans.
 
 ## Test patterns
 
