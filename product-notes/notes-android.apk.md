@@ -3,9 +3,9 @@
 `notes-android.apk` is a **41,493-byte** Android package copied from the
 validated NativeActivity APK precedent in [`../poc-10/hello.apk`](../poc-10/hello.apk.md).
 
-It is the initial Android Notes product package container. The APK is signed and
-kept byte-compatible with the working POC package; the full Notes render/input
-path remains tracked in [`mobile-plan.md`](mobile-plan.md).
+It is the initial Android Notes GUI scaffold package. The APK is signed and kept
+byte-compatible with the working NativeActivity POC package; the full Notes
+render/input path remains tracked in [`mobile-plan.md`](mobile-plan.md).
 
 ## APK structure
 

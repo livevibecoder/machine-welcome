@@ -7,7 +7,7 @@ It opens the sibling ARM64 binary and checks:
 
 - `0x000` length 4: `7f 45 4c 46`
 - `0x012` length 2: `b7 00` (`EM_AARCH64`)
-- `0x098` length 14: `Notes product\n`
+- `0x098` length 14: `Notes GUI ARM\n`
 
 ## Code shape
 
@@ -35,5 +35,5 @@ notes-linux-arm64
 ```text
 7f 45 4c 46
 b7 00
-4e 6f 74 65 73 20 70 72 6f 64 75 63 74 0a
+4e 6f 74 65 73 20 47 55 49 20 41 52 4d 0a
 ```

@@ -6,7 +6,7 @@ macOS Notes product target. It is derived from
 changed to:
 
 ```text
-Notes macOS!!
+Notes GUI Mac
 ```
 
 Like the Apple POC, this is a Linux-host-verified structural artifact. A real
@@ -20,7 +20,7 @@ AppKit runtime is still tracked in [`apple-desktop-plan.md`](apple-desktop-plan.
 0x068..0x07f    24   LC_BUILD_VERSION, platform macOS
 0x080..0x097    24   LC_MAIN
 0x098..0x09b     4   arm64 code: ret
-0x09c..0x0a9    14   "Notes macOS!!\n"
+0x09c..0x0a9    14   "Notes GUI Mac\n"
 ```
 
 ## Key bytes
@@ -46,10 +46,10 @@ c0 03 5f d6   ret
 Payload at `0x09c`:
 
 ```text
-4e 6f 74 65 73 20 6d 61 63 4f 53 21 21 0a
+4e 6f 74 65 73 20 47 55 49 20 4d 61 63 0a
 ```
 
 ## Verification
 
 `test-notes-macos` checks the Mach-O magic, macOS platform word, and product
-payload bytes.
+GUI scaffold payload bytes.

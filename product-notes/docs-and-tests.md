@@ -30,9 +30,9 @@ Expected primary artifacts:
 - `notes-android.apk`
 - `notes-web.wasm`
 
-The non-x86_64 artifacts currently committed are initial marker/container
+The non-x86_64 artifacts currently committed are initial GUI scaffold/container
 executables with structural verifiers. Their platform plans remain the source of
-truth for the full native GUI work.
+truth for the full interactive native GUI work.
 
 ## Test patterns
 

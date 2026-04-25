@@ -1,13 +1,14 @@
 # `product-notes/test-notes-win64`
 
-`test-notes-win64` is a **343-byte** Linux x86_64 ELF structural verifier for
+`test-notes-win64` is a **357-byte** Linux x86_64 ELF structural verifier for
 `./notes-win64.exe`.
 
 It checks:
 
 - `0x000` length 2: `4d 5a`
 - `0x084` length 2: `64 86`
-- `0x230` length 15: `Notes, win64!\r\n`
+- `0x0dc` length 2: `02 00`
+- `0x230` length 15: `Notes GUI x64\r\n`
 
 ## Code shape
 
@@ -25,5 +26,6 @@ Syscalls used:
 ```text
 4d 5a
 64 86
-4e 6f 74 65 73 2c 20 77 69 6e 36 34 21 0d 0a
+02 00
+4e 6f 74 65 73 20 47 55 49 20 78 36 34 0d 0a
 ```

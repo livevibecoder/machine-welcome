@@ -6,7 +6,7 @@ iOS Notes product target. It is derived from
 to:
 
 ```text
-Notes iOS!!
+NotesGUIiOS
 ```
 
 This is a Linux-host structural artifact. Real iOS execution, signing, and UI
@@ -20,7 +20,7 @@ work remain described in [`mobile-plan.md`](mobile-plan.md).
 0x068..0x07f    24   LC_BUILD_VERSION, platform iOS
 0x080..0x097    24   LC_MAIN
 0x098..0x09b     4   arm64 code: ret
-0x09c..0x0a7    12   "Notes iOS!!\n"
+0x09c..0x0a7    12   "NotesGUIiOS\n"
 ```
 
 ## Key bytes
@@ -29,10 +29,10 @@ work remain described in [`mobile-plan.md`](mobile-plan.md).
 0x000: cf fa ed fe
 0x070: 02 00 00 00
 0x098: c0 03 5f d6
-0x09c: 4e 6f 74 65 73 20 69 4f 53 21 21 0a
+0x09c: 4e 6f 74 65 73 47 55 49 69 4f 53 0a
 ```
 
 ## Verification
 
 `test-notes-ios` checks the Mach-O magic, iOS platform word, and product payload
-bytes.
+GUI scaffold payload bytes.

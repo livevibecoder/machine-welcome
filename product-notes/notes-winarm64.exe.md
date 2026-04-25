@@ -1,9 +1,9 @@
 # `product-notes/notes-winarm64.exe`
 
-`notes-winarm64.exe` is a **1024-byte** `PE32+` Windows ARM64 console executable
-container. It reuses the PE layout from `notes-win64.exe`, changes the COFF
-machine type to ARM64, and replaces the entrypoint with a tiny ARM64 return
-stub.
+`notes-winarm64.exe` is a **1024-byte** `PE32+` Windows ARM64 GUI-subsystem
+executable container. It reuses the PE layout from `notes-win64.exe`, changes
+the COFF machine type to ARM64, patches the subsystem to `Windows GUI`, and
+replaces the entrypoint with a tiny ARM64 return stub.
 
 This is an initial structural Windows ARM64 product artifact. It does not yet
 implement the Win32 Notes GUI described in [`windows-plan.md`](windows-plan.md).
@@ -24,6 +24,14 @@ At `0x084`:
 
 This is the Windows ARM64 machine type.
 
+At `0x0dc`:
+
+```text
+02 00
+```
+
+This is the GUI-subsystem marker.
+
 At `0x200`, the entry stub is:
 
 ```text
@@ -31,16 +39,16 @@ At `0x200`, the entry stub is:
 c0 03 5f d6   ret
 ```
 
-At `0x230`, the product marker string inherited from the x86_64 sibling is:
+At `0x230`, the product GUI scaffold string is:
 
 ```text
-4e 6f 74 65 73 2c 20 77 69 6e 36 34 21 0d 0a
+4e 6f 74 65 73 20 47 55 49 20 41 52 4d 0d 0a
 ```
 
 ASCII:
 
 ```text
-Notes, win64!
+Notes GUI ARM
 ```
 
 The retained import-table bytes are inert for the current return stub but keep
@@ -49,5 +57,5 @@ GUI path is still pending.
 
 ## Verification
 
-`test-notes-winarm64` checks the `MZ` signature, ARM64 machine type, ARM64 entry
-stub, and product marker string.
+`test-notes-winarm64` checks the `MZ` signature, ARM64 machine type, GUI
+subsystem, ARM64 entry stub, and product marker string.

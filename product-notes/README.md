@@ -8,13 +8,13 @@ The current committed product artifacts are:
 - `notes-linux-x86_64` — Linux x86_64 raw-X11 reference build
 - `test-notes-linux-x86_64` — Linux x86_64 structural verifier
 - `test-notes-linux-x86_64-clicks` — Linux x86_64 click-path structural verifier
-- `notes-linux-arm64` / `test-notes-linux-arm64` — Linux ARM64 marker and verifier
-- `notes-win64.exe` / `test-notes-win64` — Windows x86_64 PE marker and verifier
-- `notes-winarm64.exe` / `test-notes-winarm64` — Windows ARM64 PE marker and verifier
-- `notes-macos` / `test-notes-macos` — macOS arm64 Mach-O marker and verifier
-- `notes-ios` / `test-notes-ios` — iOS arm64 Mach-O marker and verifier
-- `notes-android.apk` / `test-notes-android` — Android NativeActivity APK container and verifier
-- `notes-web.wasm` / `test-notes-web` — WASI Wasm marker and verifier
+- `notes-linux-arm64` / `test-notes-linux-arm64` — Linux ARM64 GUI scaffold and verifier
+- `notes-win64.exe` / `test-notes-win64` — Windows x86_64 GUI-subsystem scaffold and verifier
+- `notes-winarm64.exe` / `test-notes-winarm64` — Windows ARM64 GUI-subsystem scaffold and verifier
+- `notes-macos` / `test-notes-macos` — macOS arm64 Mach-O GUI scaffold and verifier
+- `notes-ios` / `test-notes-ios` — iOS arm64 Mach-O GUI scaffold and verifier
+- `notes-android.apk` / `test-notes-android` — Android NativeActivity GUI scaffold and verifier
+- `notes-web.wasm` / `test-notes-web` — Wasm GUI scaffold marker and verifier
 
 The rest of the files in this directory define the shared product contract and
 the implementation notes for the other target platforms in the approved plan.
@@ -28,19 +28,19 @@ ASCII input, shifted uppercase/symbols, pane borders, and simple colours.
 | [`notes-linux-x86_64.md`](notes-linux-x86_64.md) | binary doc | Byte-level explanation of the Linux x86_64 reference build |
 | [`test-notes-linux-x86_64.md`](test-notes-linux-x86_64.md) | test doc | Explanation of the Linux x86_64 structural verifier |
 | [`test-notes-linux-x86_64-clicks.md`](test-notes-linux-x86_64-clicks.md) | test doc | Explanation of the click-path structural verifier |
-| [`notes-linux-arm64.md`](notes-linux-arm64.md) | binary doc | Linux ARM64 Notes marker executable |
+| [`notes-linux-arm64.md`](notes-linux-arm64.md) | binary doc | Linux ARM64 Notes GUI scaffold executable |
 | [`test-notes-linux-arm64.md`](test-notes-linux-arm64.md) | test doc | Linux ARM64 structural verifier |
-| [`notes-win64.exe.md`](notes-win64.exe.md) | binary doc | Windows x86_64 PE Notes marker executable |
+| [`notes-win64.exe.md`](notes-win64.exe.md) | binary doc | Windows x86_64 PE Notes GUI scaffold executable |
 | [`test-notes-win64.md`](test-notes-win64.md) | test doc | Windows x86_64 structural verifier |
-| [`notes-winarm64.exe.md`](notes-winarm64.exe.md) | binary doc | Windows ARM64 PE Notes marker executable |
+| [`notes-winarm64.exe.md`](notes-winarm64.exe.md) | binary doc | Windows ARM64 PE Notes GUI scaffold executable |
 | [`test-notes-winarm64.md`](test-notes-winarm64.md) | test doc | Windows ARM64 structural verifier |
-| [`notes-macos.md`](notes-macos.md) | binary doc | macOS arm64 Mach-O Notes marker executable |
+| [`notes-macos.md`](notes-macos.md) | binary doc | macOS arm64 Mach-O Notes GUI scaffold executable |
 | [`test-notes-macos.md`](test-notes-macos.md) | test doc | macOS structural verifier |
-| [`notes-ios.md`](notes-ios.md) | binary doc | iOS arm64 Mach-O Notes marker executable |
+| [`notes-ios.md`](notes-ios.md) | binary doc | iOS arm64 Mach-O Notes GUI scaffold executable |
 | [`test-notes-ios.md`](test-notes-ios.md) | test doc | iOS structural verifier |
-| [`notes-android.apk.md`](notes-android.apk.md) | binary doc | Android APK Notes package container |
+| [`notes-android.apk.md`](notes-android.apk.md) | binary doc | Android APK Notes GUI scaffold package |
 | [`test-notes-android.md`](test-notes-android.md) | test doc | Android APK structural verifier |
-| [`notes-web.wasm.md`](notes-web.wasm.md) | binary doc | WebAssembly Notes marker module |
+| [`notes-web.wasm.md`](notes-web.wasm.md) | binary doc | Browser-hosted WebAssembly Notes GUI module |
 | [`test-notes-web.md`](test-notes-web.md) | test doc | WebAssembly structural verifier |
 | [`linux-arm64-plan.md`](linux-arm64-plan.md) | platform plan | Linux ARM64 port plan |
 | [`windows-plan.md`](windows-plan.md) | platform plan | Windows x86_64 and ARM64 GUI plan |

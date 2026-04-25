@@ -19,11 +19,12 @@ Provide the same core notes behavior in a browser-hosted environment:
 - normal printable ASCII input, including uppercase letters and shifted symbols
 - simple pane borders with readable foreground/background colours
 
-## Starting point
+## Current artifact
 
-The current Wasm precedent is the WASI hello module in
-[`../poc-05/hello.wasm.md`](../poc-05/hello.wasm.md). That proves a Wasm binary
-target, but not a browser GUI contract.
+`notes-web.wasm` now implements the browser-hosted GUI contract boundary: it
+imports drawing/storage functions from module `notes`, exports `init`, `key`,
+and `click`, owns the editor buffer in linear memory, and renders the note/list
+pane chrome through host callbacks.
 
 ## Product policy for web
 
