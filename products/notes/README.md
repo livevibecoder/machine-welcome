@@ -24,7 +24,7 @@ the verifier binary, and the verifier Markdown together.
 | Windows ARM64 | GUI-subsystem scaffold/container and structural verifier. | [`targets/windows/arm64/`](targets/windows/arm64/) |
 | macOS arm64 | Mach-O GUI scaffold/container and structural verifier. | [`targets/apple/macos-arm64/`](targets/apple/macos-arm64/) |
 | iOS arm64 | Mach-O GUI scaffold/container and structural verifier. | [`targets/apple/ios-arm64/`](targets/apple/ios-arm64/) |
-| Android | NativeActivity APK scaffold and structural verifier. | [`targets/android/`](targets/android/) |
+| Android | NativeActivity APK with native framebuffer-rendered panes and structural verifier. | [`targets/android/`](targets/android/) |
 | WebAssembly | Browser-hosted Wasm GUI module and structural verifier. | [`targets/wasm/`](targets/wasm/) |
 
 Browser runner files for the Wasm target live in [`runners/web/`](runners/web/).
